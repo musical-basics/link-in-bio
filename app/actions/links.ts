@@ -24,6 +24,7 @@ export async function updateLink(id: string, data: any) {
             data,
         })
         revalidatePath('/')
+        revalidatePath('/admin')
         return { success: true, data: link }
     } catch (error) {
         console.error('Failed to update link:', error)
@@ -59,6 +60,7 @@ export async function createLink(linkData: {
             },
         })
         revalidatePath('/')
+        revalidatePath('/admin')
         return { success: true, data: link }
     } catch (error) {
         console.error('Failed to create link:', error)
@@ -72,9 +74,11 @@ export async function deleteLink(id: string) {
             where: { id },
         })
         revalidatePath('/')
+        revalidatePath('/admin')
         return { success: true }
     } catch (error) {
         console.error('Failed to delete link:', error)
         return { success: false, error: 'Failed to delete link' }
     }
 }
+
