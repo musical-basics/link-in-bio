@@ -1,29 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react"
-import type { Link as LinkType } from "@/lib/data"
+import { Label } from "@/components/ui/label"
+import { Pencil } from "lucide-react"
+import type { Link as LinkType, Group } from "@/lib/data"
+import { groups } from "@/lib/data"
 
 interface ManageGroupsDialogProps {
     open: boolean
@@ -32,167 +17,110 @@ interface ManageGroupsDialogProps {
     onUpdateLinks: (links: LinkType[]) => void
 }
 
-export function ManageGroupsDialog({
-    open,
-    onOpenChange,
-    links,
-    onUpdateLinks,
-}: ManageGroupsDialogProps) {
-    const [newGroupName, setNewGroupName] = useState("")
+export function ManageGroupsDialog({ open, onOpenChange, links, onUpdateLinks }: ManageGroupsDialogProps) {
     const [editingGroup, setEditingGroup] = useState<string | null>(null)
-    const [editedGroupName, setEditedGroupName] = useState("")
+    const [editDescription, setEditDescription] = useState("")
+    const [allGroups, setAllGroups] = useState<Group[]>(groups)
 
-    // Get unique groups with their link counts
-    const groupCounts = links.reduce((acc, link) => {
-        acc[link.group] = (acc[link.group] || 0) + 1
-        return acc
-    }, {} as Record<string, number>)
+    const groupCounts = links.reduce(
+        (acc, link) => {
+            acc[link.group] = (acc[link.group] || 0) + 1
+            return acc
+        },
+        {} as Record<string, number>,
+    )
 
-    const groups = Object.keys(groupCounts).sort()
-
-    const handleAddGroup = () => {
-        if (newGroupName.trim() && !groups.includes(newGroupName.trim())) {
-            // Groups are defined by their usage in links, so adding a group
-            // just means the name is available for selection
-            // For now, we'll just close the input
-            setNewGroupName("")
-        }
-    }
-
-    const handleRenameGroup = (oldName: string) => {
-        if (editedGroupName.trim() && editedGroupName !== oldName) {
-            const updatedLinks = links.map((link) =>
-                link.group === oldName ? { ...link, group: editedGroupName.trim() } : link
-            )
-            onUpdateLinks(updatedLinks)
-        }
-        setEditingGroup(null)
-        setEditedGroupName("")
-    }
-
-    const handleDeleteGroup = (groupName: string) => {
-        // Move all links in this group to "General"
-        const updatedLinks = links.map((link) =>
-            link.group === groupName ? { ...link, group: "General" } : link
-        )
-        onUpdateLinks(updatedLinks)
-    }
-
-    const startEditing = (groupName: string) => {
+    const handleEditGroup = (groupName: string) => {
+        // Find group in allGroups or create a default one if it doesn't exist
+        const groupInfo = allGroups.find((g) => g.name === groupName)
         setEditingGroup(groupName)
-        setEditedGroupName(groupName)
+        setEditDescription(groupInfo?.description || "")
+    }
+
+    const handleSaveDescription = () => {
+        if (editingGroup) {
+            const existingGroupIndex = allGroups.findIndex((g) => g.name === editingGroup)
+
+            if (existingGroupIndex >= 0) {
+                // Update existing group
+                const newGroups = [...allGroups]
+                newGroups[existingGroupIndex] = { ...newGroups[existingGroupIndex], description: editDescription }
+                setAllGroups(newGroups)
+            } else {
+                // Add new group entry if it didn't exist in the list (e.g. created via Add Link)
+                setAllGroups([...allGroups, { name: editingGroup, description: editDescription }])
+            }
+
+            setEditingGroup(null)
+            setEditDescription("")
+        }
     }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Manage Groups</DialogTitle>
-                    <DialogDescription>
-                        Organize your links by renaming or removing groups.
-                    </DialogDescription>
+                    <DialogDescription>Overview and customize your link groups.</DialogDescription>
                 </DialogHeader>
+                <div className="space-y-4 py-4">
+                    {Object.entries(groupCounts).map(([groupName, count]) => {
+                        const groupInfo = allGroups.find((g) => g.name === groupName)
+                        const isEditing = editingGroup === groupName
 
-                <div className="space-y-4">
-                    {/* Add new group */}
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="New group name..."
-                            value={newGroupName}
-                            onChange={(e) => setNewGroupName(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleAddGroup()}
-                        />
-                        <Button onClick={handleAddGroup} size="icon" disabled={!newGroupName.trim()}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                    </div>
-
-                    {/* Existing groups */}
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {groups.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                                No groups yet. Add links to create groups.
-                            </p>
-                        ) : (
-                            groups.map((group) => (
-                                <div
-                                    key={group}
-                                    className="flex items-center gap-2 p-2 rounded-lg border bg-card"
-                                >
-                                    {editingGroup === group ? (
-                                        <>
+                        return (
+                            <div key={groupName} className="rounded-lg border p-4">
+                                {isEditing ? (
+                                    <div className="space-y-3">
+                                        <div>
+                                            <Label className="text-sm font-medium">{groupName}</Label>
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="description" className="text-xs">
+                                                Description (optional)
+                                            </Label>
                                             <Input
-                                                value={editedGroupName}
-                                                onChange={(e) => setEditedGroupName(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter") handleRenameGroup(group)
-                                                    if (e.key === "Escape") setEditingGroup(null)
-                                                }}
-                                                className="flex-1"
-                                                autoFocus
+                                                id="description"
+                                                value={editDescription}
+                                                onChange={(e) => setEditDescription(e.target.value)}
+                                                placeholder="Add a description for this group"
+                                                className="mt-1"
                                             />
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={() => handleRenameGroup(group)}
-                                            >
-                                                <Check className="h-4 w-4 text-green-500" />
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                            <Button type="button" variant="outline" size="sm" onClick={() => setEditingGroup(null)}>
+                                                Cancel
                                             </Button>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={() => setEditingGroup(null)}
-                                            >
-                                                <X className="h-4 w-4" />
+                                            <Button type="button" size="sm" onClick={handleSaveDescription}>
+                                                Save
                                             </Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="flex-1 font-medium">{group}</span>
-                                            <Badge variant="secondary">{groupCounts[group]} links</Badge>
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={() => startEditing(group)}
-                                            >
-                                                <Edit2 className="h-4 w-4" />
-                                            </Button>
-                                            {group !== "General" && (
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            className="text-destructive hover:text-destructive"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Delete "{group}" group?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                {groupCounts[group]} link(s) will be moved to "General".
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                                onClick={() => handleDeleteGroup(group)}
-                                                            >
-                                                                Delete
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <h4 className="font-semibold">{groupName}</h4>
+                                            {groupInfo?.description && (
+                                                <p className="text-sm text-muted-foreground mt-1">{groupInfo.description}</p>
                                             )}
-                                        </>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
+                                            <p className="text-xs text-muted-foreground mt-2">
+                                                {count} {count === 1 ? "link" : "links"}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="secondary">{count}</Badge>
+                                            <Button type="button" variant="ghost" size="sm" onClick={() => handleEditGroup(groupName)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })}
+                    {Object.keys(groupCounts).length === 0 && (
+                        <div className="text-center text-muted-foreground py-8">No groups yet. Add links to create groups.</div>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>

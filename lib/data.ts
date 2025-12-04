@@ -20,6 +20,18 @@ export interface ProfileData {
   }[]
 }
 
+export interface Group {
+  name: string
+  description: string
+}
+
+export const groups: Group[] = [
+  { name: "Work", description: "Professional and creative projects" },
+  { name: "Socials", description: "Connect with me on social platforms" },
+  { name: "Music", description: "My music and performances" },
+  { name: "General", description: "Other links" },
+]
+
 // Mock data
 export const profileData: ProfileData = {
   name: "Alex Morgan",
