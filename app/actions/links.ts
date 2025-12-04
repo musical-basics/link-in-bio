@@ -54,3 +54,16 @@ export async function createLink() {
         return { success: false, error: 'Failed to create link' }
     }
 }
+
+export async function deleteLink(id: string) {
+    try {
+        await prisma.link.delete({
+            where: { id },
+        })
+        revalidatePath('/')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to delete link:', error)
+        return { success: false, error: 'Failed to delete link' }
+    }
+}

@@ -9,7 +9,7 @@ import { LinkManager } from "@/components/link-manager"
 import { ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { updateLink, createLink } from "@/app/actions/links"
+import { updateLink, createLink, deleteLink } from "@/app/actions/links"
 
 interface AdminDashboardProps {
     initialLinks: LinkType[]
@@ -37,6 +37,19 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
             setLinks([...links, result.data as LinkType])
         } else {
             console.error("Failed to create link")
+        }
+    }
+
+    const handleDeleteLink = async (linkToDelete: LinkType) => {
+        // Optimistic update
+        setLinks(links.filter((link) => link.id !== linkToDelete.id))
+
+        // Server delete
+        const result = await deleteLink(linkToDelete.id)
+        if (!result.success) {
+            // Revert on failure
+            console.error("Failed to delete link")
+            setLinks(links) // Restore original links
         }
     }
 
@@ -137,7 +150,7 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
                             <CardDescription>Drag and drop to reorder links. Click on a link to edit.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} />
+                            <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} />
                         </CardContent>
                     </Card>
                 </div>

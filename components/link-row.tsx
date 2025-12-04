@@ -5,16 +5,17 @@ import * as LucideIcons from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { GripVertical, Pencil } from "lucide-react"
+import { GripVertical, Pencil, Trash2 } from "lucide-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
 interface LinkRowProps {
   link: LinkType
   onEdit?: (link: LinkType) => void
+  onDelete?: (link: LinkType) => void
 }
 
-export function LinkRow({ link, onEdit }: LinkRowProps) {
+export function LinkRow({ link, onEdit, onDelete }: LinkRowProps) {
   const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id })
@@ -63,6 +64,10 @@ export function LinkRow({ link, onEdit }: LinkRowProps) {
 
       <Button size="icon" variant="ghost" onClick={() => onEdit?.(link)}>
         <Pencil className="h-4 w-4" />
+      </Button>
+
+      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onDelete?.(link)}>
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   )

@@ -19,9 +19,10 @@ interface LinkManagerProps {
   links: LinkType[]
   setLinks: (links: LinkType[]) => void
   onUpdateLink?: (link: LinkType) => void
+  onDeleteLink?: (link: LinkType) => void
 }
 
-export function LinkManager({ links, setLinks, onUpdateLink }: LinkManagerProps) {
+export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink }: LinkManagerProps) {
   const [editingLink, setEditingLink] = useState<LinkType | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
 
@@ -70,7 +71,7 @@ export function LinkManager({ links, setLinks, onUpdateLink }: LinkManagerProps)
         <SortableContext items={links.map((link) => link.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-2">
             {links.map((link) => (
-              <LinkRow key={link.id} link={link} onEdit={handleEditLink} />
+              <LinkRow key={link.id} link={link} onEdit={handleEditLink} onDelete={onDeleteLink} />
             ))}
           </div>
         </SortableContext>
