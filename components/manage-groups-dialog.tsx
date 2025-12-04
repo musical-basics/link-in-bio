@@ -1,26 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Pencil } from "lucide-react"
-import type { Link as LinkType, Group } from "@/lib/data"
-import { groups } from "@/lib/data"
+import type { Link as LinkType } from "@/lib/data"
+import { updateGroupDescription } from "@/app/actions/groups"
+
+interface Group {
+    id: string
+    name: string
+    description: string | null
+    order: number
+}
 
 interface ManageGroupsDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     links: LinkType[]
+    groups: Group[]
     onUpdateLinks: (links: LinkType[]) => void
+    onRefreshGroups: () => void
 }
 
-export function ManageGroupsDialog({ open, onOpenChange, links, onUpdateLinks }: ManageGroupsDialogProps) {
+export function ManageGroupsDialog({
+    open,
+    onOpenChange,
+    links,
+    groups,
+    onUpdateLinks,
+    onRefreshGroups,
+}: ManageGroupsDialogProps) {
     const [editingGroup, setEditingGroup] = useState<string | null>(null)
     const [editDescription, setEditDescription] = useState("")
-    const [allGroups, setAllGroups] = useState<Group[]>(groups)
 
     const groupCounts = links.reduce(
         (acc, link) => {
@@ -31,26 +46,17 @@ export function ManageGroupsDialog({ open, onOpenChange, links, onUpdateLinks }:
     )
 
     const handleEditGroup = (groupName: string) => {
-        // Find group in allGroups or create a default one if it doesn't exist
-        const groupInfo = allGroups.find((g) => g.name === groupName)
+        const groupInfo = groups.find((g) => g.name === groupName)
         setEditingGroup(groupName)
         setEditDescription(groupInfo?.description || "")
     }
 
-    const handleSaveDescription = () => {
+    const handleSaveDescription = async () => {
         if (editingGroup) {
-            const existingGroupIndex = allGroups.findIndex((g) => g.name === editingGroup)
-
-            if (existingGroupIndex >= 0) {
-                // Update existing group
-                const newGroups = [...allGroups]
-                newGroups[existingGroupIndex] = { ...newGroups[existingGroupIndex], description: editDescription }
-                setAllGroups(newGroups)
-            } else {
-                // Add new group entry if it didn't exist in the list (e.g. created via Add Link)
-                setAllGroups([...allGroups, { name: editingGroup, description: editDescription }])
+            const result = await updateGroupDescription(editingGroup, editDescription)
+            if (result.success) {
+                onRefreshGroups()
             }
-
             setEditingGroup(null)
             setEditDescription("")
         }
@@ -65,7 +71,7 @@ export function ManageGroupsDialog({ open, onOpenChange, links, onUpdateLinks }:
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     {Object.entries(groupCounts).map(([groupName, count]) => {
-                        const groupInfo = allGroups.find((g) => g.name === groupName)
+                        const groupInfo = groups.find((g) => g.name === groupName)
                         const isEditing = editingGroup === groupName
 
                         return (

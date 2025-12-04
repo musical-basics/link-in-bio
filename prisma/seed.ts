@@ -75,12 +75,29 @@ const linksData = [
     },
 ]
 
+const groupsData = [
+    { name: "Work", description: "Professional and creative projects", order: 1 },
+    { name: "Socials", description: "Connect with me on social platforms", order: 2 },
+    { name: "Music", description: "My music and performances", order: 3 },
+    { name: "General", description: "Other links", order: 4 },
+]
+
 async function main() {
     console.log('Start seeding...')
 
     // Clear existing data
     await prisma.link.deleteMany()
+    await prisma.group.deleteMany()
 
+    // Seed groups
+    for (const group of groupsData) {
+        const createdGroup = await prisma.group.create({
+            data: group,
+        })
+        console.log(`Created group: ${createdGroup.name}`)
+    }
+
+    // Seed links
     for (const link of linksData) {
         const createdLink = await prisma.link.create({
             data: link,

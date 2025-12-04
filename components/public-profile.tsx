@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LinkGroup } from "@/components/link-group"
-import { profileData, groups } from "@/lib/data"
+import { profileData } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SocialIcons } from "@/components/social-icons"
@@ -12,11 +12,19 @@ import { ShareLinkDialog } from "@/components/share-link-dialog"
 import { useState } from "react"
 import type { Link as LinkType } from "@/lib/data"
 
-interface PublicProfileProps {
-    initialLinks: LinkType[]
+interface Group {
+    id: string
+    name: string
+    description: string | null
+    order: number
 }
 
-export function PublicProfile({ initialLinks }: PublicProfileProps) {
+interface PublicProfileProps {
+    initialLinks: LinkType[]
+    initialGroups: Group[]
+}
+
+export function PublicProfile({ initialLinks, initialGroups }: PublicProfileProps) {
     const [sharePageOpen, setSharePageOpen] = useState(false)
     const [shareLinkOpen, setShareLinkOpen] = useState(false)
     const [selectedLink, setSelectedLink] = useState<LinkType | null>(null)
@@ -72,7 +80,7 @@ export function PublicProfile({ initialLinks }: PublicProfileProps) {
 
                 <div className="space-y-8">
                     {Object.entries(groupedLinks).map(([groupName, links]) => {
-                        const groupInfo = groups.find((g) => g.name === groupName)
+                        const groupInfo = initialGroups.find((g: Group) => g.name === groupName)
                         return (
                             <LinkGroup
                                 key={groupName}

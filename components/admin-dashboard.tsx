@@ -10,17 +10,34 @@ import { ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { updateLink, createLink, deleteLink } from "@/app/actions/links"
+import { getGroups } from "@/app/actions/groups"
 import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
 import { AddLinkDialog } from "@/components/add-link-dialog"
 
-interface AdminDashboardProps {
-    initialLinks: LinkType[]
+interface Group {
+    id: string
+    name: string
+    description: string | null
+    order: number
 }
 
-export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
+interface AdminDashboardProps {
+    initialLinks: LinkType[]
+    initialGroups: Group[]
+}
+
+export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardProps) {
     const [links, setLinks] = useState<LinkType[]>(initialLinks)
+    const [groups, setGroups] = useState<Group[]>(initialGroups)
     const [isManageGroupsOpen, setIsManageGroupsOpen] = useState(false)
     const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
+
+    const refreshGroups = async () => {
+        const result = await getGroups()
+        if (result.success) {
+            setGroups(result.data as Group[])
+        }
+    }
 
     const handleUpdateLink = async (updatedLink: LinkType) => {
         // Optimistic update
@@ -186,14 +203,16 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
                 open={isManageGroupsOpen}
                 onOpenChange={setIsManageGroupsOpen}
                 links={links}
+                groups={groups}
                 onUpdateLinks={handleUpdateGroups}
+                onRefreshGroups={refreshGroups}
             />
 
             <AddLinkDialog
                 open={isAddLinkOpen}
                 onOpenChange={setIsAddLinkOpen}
                 onAddLink={handleAddLink}
-                existingGroups={existingGroups}
+                existingGroups={groups.map(g => g.name)}
             />
         </>
     )
