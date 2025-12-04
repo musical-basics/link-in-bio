@@ -9,7 +9,7 @@ import { LinkManager } from "@/components/link-manager"
 import { ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { updateLink } from "@/app/actions/links"
+import { updateLink, createLink } from "@/app/actions/links"
 
 interface AdminDashboardProps {
     initialLinks: LinkType[]
@@ -28,6 +28,15 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
             // Revert on failure (optional, but good practice)
             console.error("Failed to update link")
             // You might want to fetch fresh data here or revert the change
+        }
+    }
+
+    const handleAddLink = async () => {
+        const result = await createLink()
+        if (result.success) {
+            setLinks([...links, result.data as LinkType])
+        } else {
+            console.error("Failed to create link")
         }
     }
 
@@ -107,7 +116,7 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
                             <CardDescription>Manage your Link in Bio</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <Button className="w-full bg-transparent" variant="outline">
+                            <Button className="w-full bg-transparent" variant="outline" onClick={handleAddLink}>
                                 Add New Link
                             </Button>
                             <Button className="w-full bg-transparent" variant="outline">
