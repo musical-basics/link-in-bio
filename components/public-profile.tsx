@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LinkGroup } from "@/components/link-group"
-import { profileData } from "@/lib/data"
+import { profileData, groups } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SocialIcons } from "@/components/social-icons"
@@ -70,11 +70,19 @@ export function PublicProfile({ initialLinks }: PublicProfileProps) {
                     </div>
                 </div>
 
-                {/* Link Groups */}
                 <div className="space-y-8">
-                    {Object.entries(groupedLinks).map(([groupName, links]) => (
-                        <LinkGroup key={groupName} title={groupName} links={links} onShareLink={handleShareLink} />
-                    ))}
+                    {Object.entries(groupedLinks).map(([groupName, links]) => {
+                        const groupInfo = groups.find((g) => g.name === groupName)
+                        return (
+                            <LinkGroup
+                                key={groupName}
+                                title={groupName}
+                                description={groupInfo?.description}
+                                links={links}
+                                onShareLink={handleShareLink}
+                            />
+                        )
+                    })}
                 </div>
 
                 {/* Admin Link */}
