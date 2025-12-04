@@ -11,6 +11,7 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { updateLink, createLink, deleteLink } from "@/app/actions/links"
 import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
+import { AddLinkDialog } from "@/components/add-link-dialog"
 
 interface AdminDashboardProps {
     initialLinks: LinkType[]
@@ -19,6 +20,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
     const [links, setLinks] = useState<LinkType[]>(initialLinks)
     const [isManageGroupsOpen, setIsManageGroupsOpen] = useState(false)
+    const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
 
     const handleUpdateLink = async (updatedLink: LinkType) => {
         // Optimistic update
@@ -33,14 +35,23 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
         }
     }
 
-    const handleAddLink = async () => {
-        const result = await createLink()
+    const handleAddLink = async (linkData: {
+        title: string
+        subtitle: string
+        url: string
+        icon: string
+        group: string
+    }) => {
+        const result = await createLink(linkData)
         if (result.success) {
             setLinks([result.data as LinkType, ...links])
         } else {
             console.error("Failed to create link")
         }
     }
+
+    // Get unique groups for the add link dialog
+    const existingGroups = [...new Set(links.map((l) => l.group))]
 
     const handleDeleteLink = async (linkToDelete: LinkType) => {
         // Optimistic update
@@ -143,7 +154,7 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
                                 <CardDescription>Manage your Link in Bio</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-2">
-                                <Button className="w-full bg-transparent" variant="outline" onClick={handleAddLink}>
+                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsAddLinkOpen(true)}>
                                     Add New Link
                                 </Button>
                                 <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsManageGroupsOpen(true)}>
@@ -176,6 +187,13 @@ export function AdminDashboard({ initialLinks }: AdminDashboardProps) {
                 onOpenChange={setIsManageGroupsOpen}
                 links={links}
                 onUpdateLinks={handleUpdateGroups}
+            />
+
+            <AddLinkDialog
+                open={isAddLinkOpen}
+                onOpenChange={setIsAddLinkOpen}
+                onAddLink={handleAddLink}
+                existingGroups={existingGroups}
             />
         </>
     )

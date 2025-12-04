@@ -31,7 +31,13 @@ export async function updateLink(id: string, data: any) {
     }
 }
 
-export async function createLink() {
+export async function createLink(linkData: {
+    title: string
+    subtitle: string
+    url: string
+    icon: string
+    group: string
+}) {
     try {
         // Shift all existing links down by 1
         await prisma.link.updateMany({
@@ -44,10 +50,11 @@ export async function createLink() {
 
         const link = await prisma.link.create({
             data: {
-                title: 'New Link',
-                url: 'https://example.com',
-                icon: 'Link',
-                group: 'General',
+                title: linkData.title,
+                subtitle: linkData.subtitle || null,
+                url: linkData.url,
+                icon: linkData.icon,
+                group: linkData.group,
                 order: 0,
             },
         })
