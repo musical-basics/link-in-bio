@@ -8,6 +8,17 @@ import { Button } from "@/components/ui/button"
 import { GripVertical, Pencil, Trash2 } from "lucide-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface LinkRowProps {
   link: LinkType
@@ -66,9 +77,31 @@ export function LinkRow({ link, onEdit, onDelete }: LinkRowProps) {
         <Pencil className="h-4 w-4" />
       </Button>
 
-      <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => onDelete?.(link)}>
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{link.title}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this link.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => onDelete?.(link)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
+

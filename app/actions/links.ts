@@ -33,10 +33,14 @@ export async function updateLink(id: string, data: any) {
 
 export async function createLink() {
     try {
-        const maxOrderLink = await prisma.link.findFirst({
-            orderBy: { order: 'desc' },
+        // Shift all existing links down by 1
+        await prisma.link.updateMany({
+            data: {
+                order: {
+                    increment: 1,
+                },
+            },
         })
-        const newOrder = (maxOrderLink?.order ?? 0) + 1
 
         const link = await prisma.link.create({
             data: {
@@ -44,7 +48,7 @@ export async function createLink() {
                 url: 'https://example.com',
                 icon: 'Link',
                 group: 'General',
-                order: newOrder,
+                order: 0,
             },
         })
         revalidatePath('/')
