@@ -1,18 +1,8 @@
-import { auth } from '@/auth';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
 
-export default auth((req) => {
-    const isLoggedIn = !!req.auth;
-    const isOnAdmin = req.nextUrl.pathname.startsWith('/admin');
-
-    if (isOnAdmin && !isLoggedIn) {
-        return NextResponse.redirect(new URL('/login', req.url));
-    }
-
-    return NextResponse.next();
-});
+export default NextAuth(authConfig).auth;
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };
