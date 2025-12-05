@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,8 +11,10 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { updateLink, createLink, deleteLink } from "@/app/actions/links"
 import { getGroups } from "@/app/actions/groups"
+import { getProfile } from "@/app/actions/profile"
 import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
 import { AddLinkDialog } from "@/components/add-link-dialog"
+import { EditProfileDialog } from "@/components/edit-profile-dialog"
 
 interface Group {
     id: string
@@ -31,6 +33,19 @@ export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardPr
     const [groups, setGroups] = useState<Group[]>(initialGroups)
     const [isManageGroupsOpen, setIsManageGroupsOpen] = useState(false)
     const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
+    const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
+    const [profile, setProfile] = useState<any>(null)
+
+    useEffect(() => {
+        fetchProfile()
+    }, [])
+
+    const fetchProfile = async () => {
+        const result = await getProfile()
+        if (result.success) {
+            setProfile(result.data)
+        }
+    }
 
     const refreshGroups = async () => {
         const result = await getGroups()
@@ -125,18 +140,22 @@ export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardPr
                             <CardContent className="space-y-4">
                                 <div className="flex flex-col items-center text-center">
                                     <Avatar className="mb-3 h-20 w-20 border-2 border-primary/20">
-                                        <AvatarImage src={profileData.imageUrl || "/placeholder.svg"} alt={profileData.name} />
+                                        <AvatarImage src={profile?.imageUrl || profileData.imageUrl || "/placeholder.svg"} alt={profile?.name || profileData.name} />
                                         <AvatarFallback>
-                                            {profileData.name
+                                            {(profile?.name || profileData.name)
                                                 .split(" ")
                                                 .map((n) => n[0])
                                                 .join("")}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <h3 className="font-semibold">{profileData.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{profileData.bio}</p>
+                                    <h3 className="font-semibold">{profile?.name || profileData.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{profile?.bio || profileData.bio}</p>
                                 </div>
-                                <Button variant="outline" className="w-full bg-transparent">
+                                <Button
+                                    variant="outline"
+                                    className="w-full bg-transparent"
+                                    onClick={() => setIsEditProfileOpen(true)}
+                                >
                                     Edit Profile
                                 </Button>
                             </CardContent>
@@ -214,6 +233,19 @@ export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardPr
                 onAddLink={handleAddLink}
                 existingGroups={groups.map(g => g.name)}
             />
+
+            {profile && (
+                <EditProfileDialog
+                    open={isEditProfileOpen}
+                    onOpenChange={setIsEditProfileOpen}
+                    initialData={{
+                        name: profile.name,
+                        bio: profile.bio,
+                        imageUrl: profile.imageUrl,
+                    }}
+                    onSuccess={fetchProfile}
+                />
+            )}
         </>
     )
 }
