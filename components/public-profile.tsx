@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LinkGroup } from "@/components/link-group"
-import { profileData } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SocialIcons } from "@/components/social-icons"
@@ -22,9 +21,16 @@ interface Group {
 interface PublicProfileProps {
     initialLinks: LinkType[]
     initialGroups: Group[]
+    profileData: {
+        name: string
+        title: string
+        bio: string
+        image: string
+        socials: any[]
+    }
 }
 
-export function PublicProfile({ initialLinks, initialGroups }: PublicProfileProps) {
+export function PublicProfile({ initialLinks, initialGroups, profileData }: PublicProfileProps) {
     const [sharePageOpen, setSharePageOpen] = useState(false)
     const [shareLinkOpen, setShareLinkOpen] = useState(false)
     const [selectedLink, setSelectedLink] = useState<LinkType | null>(null)

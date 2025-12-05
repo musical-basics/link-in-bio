@@ -8,6 +8,32 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed with bcrypt
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  profile   Profile?
+  links     Link[]
+  groups    Group[]
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String
+  bio       String?
+  imageUrl  String?
+  socials   Json?    // Store socials as JSON array
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Link {
   id        String   @id @default(cuid())
   title     String
@@ -18,16 +44,27 @@ model Link {
   clicks    Int      @default(0)
   order     Int      @default(0)
   isActive  Boolean  @default(true)
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model Group {
   id          String   @id @default(cuid())
-  name        String   @unique
+  name        String
   description String?
   order       Int      @default(0)
+  userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([name, userId])
+  @@index([userId])
 }
 
