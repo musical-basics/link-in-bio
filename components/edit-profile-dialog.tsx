@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { updateProfile } from "@/app/actions/profile"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Upload } from "lucide-react"
 
 interface EditProfileDialogProps {
     open: boolean
@@ -23,7 +25,22 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
     const [name, setName] = useState(initialData.name)
     const [bio, setBio] = useState(initialData.bio || "")
     const [imageUrl, setImageUrl] = useState(initialData.imageUrl || "")
+    const [imagePreview, setImagePreview] = useState<string | null>(initialData.imageUrl || null)
     const [isLoading, setIsLoading] = useState(false)
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        // Create preview
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            const base64String = reader.result as string
+            setImagePreview(base64String)
+            setImageUrl(base64String)
+        }
+        reader.readAsDataURL(file)
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -54,6 +71,52 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-4 py-4">
+                        {/* Profile Image Upload */}
+                        <div className="space-y-2">
+                            <Label>Profile Image</Label>
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20 border-2 border-primary/20">
+                                    <AvatarImage src={imagePreview || "/placeholder.svg"} />
+                                    <AvatarFallback>
+                                        {name.split(" ").map((n) => n[0]).join("")}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <label
+                                        htmlFor="image-upload"
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full cursor-pointer"
+                                    >
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Upload Image
+                                    </label>
+                                    <input
+                                        id="image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        JPG, PNG, or GIF (max 5MB)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Or URL Input */}
+                        <div className="space-y-2">
+                            <Label htmlFor="imageUrl">Or enter image URL</Label>
+                            <Input
+                                id="imageUrl"
+                                value={imageUrl}
+                                onChange={(e) => {
+                                    setImageUrl(e.target.value)
+                                    setImagePreview(e.target.value)
+                                }}
+                                placeholder="https://example.com/image.jpg"
+                            />
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="name">Name *</Label>
                             <Input
@@ -73,18 +136,6 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                                 placeholder="Designer, Developer & Creator"
                                 rows={3}
                             />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="imageUrl">Profile Image URL</Label>
-                            <Input
-                                id="imageUrl"
-                                value={imageUrl}
-                                onChange={(e) => setImageUrl(e.target.value)}
-                                placeholder="/diverse-person-portrait.png"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Enter a URL to your profile image
-                            </p>
                         </div>
                     </div>
                     <div className="flex justify-end gap-2">
