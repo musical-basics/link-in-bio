@@ -27,10 +27,21 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
     const [imageUrl, setImageUrl] = useState(initialData.imageUrl || "")
     const [imagePreview, setImagePreview] = useState<string | null>(initialData.imageUrl || null)
     const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
+
+        // Check file size (2MB limit for base64 storage)
+        const maxSize = 2 * 1024 * 1024 // 2MB
+        if (file.size > maxSize) {
+            setError("Image must be less than 2MB. Please use a smaller image or an image URL.")
+            e.target.value = "" // Reset input
+            return
+        }
+
+        setError(null)
 
         // Create preview
         const reader = new FileReader()
@@ -45,20 +56,27 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
+        setError(null)
 
-        const result = await updateProfile({
-            name,
-            bio: bio || null,
-            imageUrl: imageUrl || null,
-        })
+        try {
+            const result = await updateProfile({
+                name,
+                bio: bio || undefined,
+                imageUrl: imageUrl || undefined,
+            })
 
-        setIsLoading(false)
+            setIsLoading(false)
 
-        if (result.success) {
-            onSuccess()
-            onOpenChange(false)
-        } else {
-            alert("Failed to update profile")
+            if (result.success) {
+                onSuccess()
+                onOpenChange(false)
+            } else {
+                setError(result.error || "Failed to update profile. Please try again.")
+            }
+        } catch (err) {
+            setIsLoading(false)
+            setError("An unexpected error occurred. Please try using an image URL instead of uploading.")
+            console.error("Profile update error:", err)
         }
     }
 
@@ -71,6 +89,13 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="space-y-4 py-4">
+                        {/* Error Message */}
+                        {error && (
+                            <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
+                                {error}
+                            </div>
+                        )}
+
                         {/* Profile Image Upload */}
                         <div className="space-y-2">
                             <Label>Profile Image</Label>
@@ -97,7 +122,7 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                                         className="hidden"
                                     />
                                     <p className="text-xs text-muted-foreground mt-2">
-                                        JPG, PNG, or GIF (max 5MB)
+                                        JPG, PNG, or GIF (max 2MB)
                                     </p>
                                 </div>
                             </div>
