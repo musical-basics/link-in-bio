@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { Link as LinkType } from "@/lib/data"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -22,15 +22,18 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave }: EditLinkShee
   const [icon, setIcon] = useState(link?.icon || "Link")
   const [group, setGroup] = useState(link?.group || "Work")
 
-  // Update form when link changes
-  const handleOpenChange = (open: boolean) => {
-    if (open && link) {
+  // Update form whenever link changes
+  useEffect(() => {
+    if (link) {
       setTitle(link.title)
       setSubtitle(link.subtitle)
       setUrl(link.url)
       setIcon(link.icon)
       setGroup(link.group)
     }
+  }, [link])
+
+  const handleOpenChange = (open: boolean) => {
     onOpenChange(open)
   }
 

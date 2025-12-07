@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Pencil } from "lucide-react"
+import { Pencil, Plus } from "lucide-react"
 import type { Link as LinkType } from "@/lib/data"
-import { updateGroupDescription } from "@/app/actions/groups"
+import { updateGroupDescription, createGroup } from "@/app/actions/groups"
 
 interface Group {
     id: string
@@ -36,6 +36,9 @@ export function ManageGroupsDialog({
 }: ManageGroupsDialogProps) {
     const [editingGroup, setEditingGroup] = useState<string | null>(null)
     const [editDescription, setEditDescription] = useState("")
+    const [isAddingGroup, setIsAddingGroup] = useState(false)
+    const [newGroupName, setNewGroupName] = useState("")
+    const [newGroupDescription, setNewGroupDescription] = useState("")
 
     const groupCounts = links.reduce(
         (acc, link) => {
@@ -44,6 +47,9 @@ export function ManageGroupsDialog({
         },
         {} as Record<string, number>,
     )
+
+    // Combine groups from DB with groups that only exist in links
+    const allGroupNames = [...new Set([...groups.map(g => g.name), ...Object.keys(groupCounts)])]
 
     const handleEditGroup = (groupName: string) => {
         const groupInfo = groups.find((g) => g.name === groupName)
@@ -62,16 +68,74 @@ export function ManageGroupsDialog({
         }
     }
 
+    const handleAddGroup = async () => {
+        if (!newGroupName.trim()) return
+        const result = await createGroup(newGroupName.trim(), newGroupDescription.trim() || undefined)
+        if (result.success) {
+            onRefreshGroups()
+            setNewGroupName("")
+            setNewGroupDescription("")
+            setIsAddingGroup(false)
+        }
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Manage Groups</DialogTitle>
-                    <DialogDescription>Overview and customize your link groups.</DialogDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <DialogTitle>Manage Groups</DialogTitle>
+                            <DialogDescription>Overview and customize your link groups.</DialogDescription>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setIsAddingGroup(true)} className="ml-4">
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add Group
+                        </Button>
+                    </div>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                    {Object.entries(groupCounts).map(([groupName, count]) => {
+                    {/* Add New Group Form */}
+                    {isAddingGroup && (
+                        <div className="rounded-lg border border-primary p-4 space-y-3">
+                            <div>
+                                <Label htmlFor="newGroupName" className="text-sm font-medium">New Group Name</Label>
+                                <Input
+                                    id="newGroupName"
+                                    value={newGroupName}
+                                    onChange={(e) => setNewGroupName(e.target.value)}
+                                    placeholder="e.g., Music, Products, Socials"
+                                    className="mt-1"
+                                    autoFocus
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="newGroupDesc" className="text-xs">Description (optional)</Label>
+                                <Input
+                                    id="newGroupDesc"
+                                    value={newGroupDescription}
+                                    onChange={(e) => setNewGroupDescription(e.target.value)}
+                                    placeholder="Add a description for this group"
+                                    className="mt-1"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button type="button" variant="outline" size="sm" onClick={() => {
+                                    setIsAddingGroup(false)
+                                    setNewGroupName("")
+                                    setNewGroupDescription("")
+                                }}>
+                                    Cancel
+                                </Button>
+                                <Button type="button" size="sm" onClick={handleAddGroup} disabled={!newGroupName.trim()}>
+                                    Create Group
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                    {allGroupNames.map((groupName) => {
                         const groupInfo = groups.find((g) => g.name === groupName)
+                        const count = groupCounts[groupName] || 0
                         const isEditing = editingGroup === groupName
 
                         return (
@@ -124,8 +188,8 @@ export function ManageGroupsDialog({
                             </div>
                         )
                     })}
-                    {Object.keys(groupCounts).length === 0 && (
-                        <div className="text-center text-muted-foreground py-8">No groups yet. Add links to create groups.</div>
+                    {allGroupNames.length === 0 && !isAddingGroup && (
+                        <div className="text-center text-muted-foreground py-8">No groups yet. Click "Add Group" to create one.</div>
                     )}
                 </div>
             </DialogContent>

@@ -233,7 +233,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                 open={isAddLinkOpen}
                 onOpenChange={setIsAddLinkOpen}
                 onAddLink={handleAddLink}
-                existingGroups={groups.map(g => g.name)}
+                existingGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]}
             />
 
             {profile && (
