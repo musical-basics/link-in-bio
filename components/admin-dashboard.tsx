@@ -213,7 +213,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                 <CardDescription>Drag and drop to reorder links. Click on a link to edit.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} />
+                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} />
                             </CardContent>
                         </Card>
                     </div>

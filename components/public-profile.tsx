@@ -46,10 +46,11 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
         {} as Record<string, LinkType[]>,
     )
 
-    // Sort groups and links
-    Object.keys(groupedLinks).forEach((group) => {
-        groupedLinks[group].sort((a, b) => a.order - b.order)
-    })
+    // Sort groups by order (from DB groups first, then any remaining)
+    const sortedGroupNames = [...new Set([
+        ...initialGroups.sort((a, b) => a.order - b.order).map(g => g.name),
+        ...Object.keys(groupedLinks)
+    ])].filter(name => groupedLinks[name]?.length > 0)
 
     return (
         <div className="min-h-screen bg-background">
@@ -83,8 +84,9 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
                 </div>
 
                 <div className="space-y-8">
-                    {Object.entries(groupedLinks).map(([groupName, links]) => {
+                    {sortedGroupNames.map((groupName) => {
                         const groupInfo = initialGroups.find((g: Group) => g.name === groupName)
+                        const links = (groupedLinks[groupName] || []).sort((a, b) => a.order - b.order)
                         return (
                             <LinkGroup
                                 key={groupName}
