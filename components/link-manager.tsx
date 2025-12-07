@@ -12,7 +12,6 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  DragOverlay,
 } from "@dnd-kit/core"
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -35,23 +34,13 @@ interface LinkManagerProps {
   onReorderGroups?: (groupNames: string[]) => void
 }
 
-// Sortable Group Section component
-function SortableGroupSection({
+// Sortable Group Header component (just the header, not the content)
+function SortableGroupHeader({
   groupName,
   groupInfo,
-  groupLinks,
-  sensors,
-  handleDragEnd,
-  handleEditLink,
-  onDeleteLink
 }: {
   groupName: string
   groupInfo?: Group
-  groupLinks: LinkType[]
-  sensors: ReturnType<typeof useSensors>
-  handleDragEnd: (event: DragEndEvent) => void
-  handleEditLink: (link: LinkType) => void
-  onDeleteLink?: (link: LinkType) => void
 }) {
   const {
     attributes,
@@ -69,36 +58,22 @@ function SortableGroupSection({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="space-y-2">
-      {/* Group Header with drag handle */}
-      <div className="border-b pb-2 flex items-center gap-2">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted"
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </button>
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            {groupName}
-          </h3>
-          {groupInfo?.description && (
-            <p className="text-xs text-muted-foreground mt-0.5">{groupInfo.description}</p>
-          )}
-        </div>
+    <div ref={setNodeRef} style={style} className="border-b pb-2 flex items-center gap-2">
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+      <div className="flex-1">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          {groupName}
+        </h3>
+        {groupInfo?.description && (
+          <p className="text-xs text-muted-foreground mt-0.5">{groupInfo.description}</p>
+        )}
       </div>
-
-      {/* Links in this group */}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={groupLinks.map((link) => link.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">
-            {groupLinks.map((link) => (
-              <LinkRow key={link.id} link={link} onEdit={handleEditLink} onDelete={onDeleteLink} />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
     </div>
   )
 }
@@ -202,35 +177,46 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
 
   return (
     <>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
-        <SortableContext items={sortedGroupNames.map(name => `group-${name}`)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-6">
+      <div className="space-y-6">
+        {/* Group Headers - Reorderable */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+          <SortableContext items={sortedGroupNames.map(name => `group-${name}`)} strategy={verticalListSortingStrategy}>
             {sortedGroupNames.map((groupName) => {
               const groupLinks = (groupedLinks[groupName] || []).sort((a, b) => a.order - b.order)
               const groupInfo = groups.find(g => g.name === groupName)
 
               return (
-                <SortableGroupSection
-                  key={groupName}
-                  groupName={groupName}
-                  groupInfo={groupInfo}
-                  groupLinks={groupLinks}
-                  sensors={sensors}
-                  handleDragEnd={handleLinkDragEnd}
-                  handleEditLink={handleEditLink}
-                  onDeleteLink={onDeleteLink}
-                />
+                <div key={groupName} className="space-y-2">
+                  {/* Sortable Group Header */}
+                  <SortableGroupHeader groupName={groupName} groupInfo={groupInfo} />
+
+                  {/* Links - Separate DndContext with different sensors */}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleLinkDragEnd}
+                    id={`links-${groupName}`}
+                  >
+                    <SortableContext items={groupLinks.map((link) => link.id)} strategy={verticalListSortingStrategy}>
+                      <div className="space-y-2 ml-6">
+                        {groupLinks.map((link) => (
+                          <LinkRow key={link.id} link={link} onEdit={handleEditLink} onDelete={onDeleteLink} />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </div>
               )
             })}
+          </SortableContext>
+        </DndContext>
 
-            {sortedGroupNames.length === 0 && (
-              <div className="text-center text-muted-foreground py-8">
-                No links yet. Click "Add New Link" to get started.
-              </div>
-            )}
+        {sortedGroupNames.length === 0 && (
+          <div className="text-center text-muted-foreground py-8">
+            No links yet. Click "Add New Link" to get started.
           </div>
-        </SortableContext>
-      </DndContext>
+        )}
+      </div>
 
       <EditLinkSheet
         link={editingLink}
