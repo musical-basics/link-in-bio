@@ -49,7 +49,7 @@ function SortableGroupHeader({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `group-${groupName}` })
+  } = useSortable({ id: `group:${groupName}` })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -58,7 +58,7 @@ function SortableGroupHeader({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="border-b pb-2 flex items-center gap-2 mb-2">
+    <div ref={setNodeRef} style={style} className="border-b pb-2 flex items-center gap-2 mb-2 mt-4 first:mt-0">
       <button
         {...attributes}
         {...listeners}
@@ -74,6 +74,38 @@ function SortableGroupHeader({
           <p className="text-xs text-muted-foreground mt-0.5">{groupInfo.description}</p>
         )}
       </div>
+    </div>
+  )
+}
+
+// Sortable Link component wrapper
+function SortableLinkRow({
+  link,
+  onEdit,
+  onDelete
+}: {
+  link: LinkType
+  onEdit: (link: LinkType) => void
+  onDelete?: (link: LinkType) => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `link:${link.id}` })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <LinkRow link={link} onEdit={onEdit} onDelete={onDelete} />
     </div>
   )
 }
@@ -113,62 +145,73 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
     ])].filter(name => groupedLinks[name]?.length > 0)
   }, [sortedGroups, groupedLinks])
 
-  // Handle group reordering
-  function handleGroupDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-
-    if (over && active.id !== over.id) {
-      const activeId = active.id as string
-      const overId = over.id as string
-
-      // Only handle group drags (prefixed with group-)
-      if (activeId.startsWith('group-') && overId.startsWith('group-')) {
-        const activeGroupName = activeId.replace('group-', '')
-        const overGroupName = overId.replace('group-', '')
-
-        const oldIndex = sortedGroupNames.indexOf(activeGroupName)
-        const newIndex = sortedGroupNames.indexOf(overGroupName)
-
-        if (oldIndex !== -1 && newIndex !== -1) {
-          const newOrder = arrayMove(sortedGroupNames, oldIndex, newIndex)
-          if (onReorderGroups) {
-            onReorderGroups(newOrder)
-          }
-        }
+  // Build flat list of sortable IDs (groups and links interleaved)
+  const allSortableIds = useMemo(() => {
+    const ids: string[] = []
+    for (const groupName of sortedGroupNames) {
+      ids.push(`group:${groupName}`)
+      const groupLinks = [...(groupedLinks[groupName] || [])].sort((a, b) => a.order - b.order)
+      for (const link of groupLinks) {
+        ids.push(`link:${link.id}`)
       }
     }
-  }
+    return ids
+  }, [sortedGroupNames, groupedLinks])
 
-  // Handle link reordering within a group
-  function handleLinkDragEnd(groupName: string) {
-    return (event: DragEndEvent) => {
-      const { active, over } = event
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
 
-      if (over && active.id !== over.id) {
+    const activeId = active.id as string
+    const overId = over.id as string
+
+    // Handle GROUP reordering
+    if (activeId.startsWith('group:') && overId.startsWith('group:')) {
+      const activeGroupName = activeId.replace('group:', '')
+      const overGroupName = overId.replace('group:', '')
+
+      const oldIndex = sortedGroupNames.indexOf(activeGroupName)
+      const newIndex = sortedGroupNames.indexOf(overGroupName)
+
+      if (oldIndex !== -1 && newIndex !== -1 && onReorderGroups) {
+        const newOrder = arrayMove(sortedGroupNames, oldIndex, newIndex)
+        onReorderGroups(newOrder)
+      }
+      return
+    }
+
+    // Handle LINK reordering (link dropped on link)
+    if (activeId.startsWith('link:') && overId.startsWith('link:')) {
+      const activeLinkId = activeId.replace('link:', '')
+      const overLinkId = overId.replace('link:', '')
+
+      const activeLink = links.find(l => l.id === activeLinkId)
+      const overLink = links.find(l => l.id === overLinkId)
+
+      // Only allow reordering within same group
+      if (activeLink && overLink && activeLink.group === overLink.group) {
+        const groupName = activeLink.group
         const groupLinks = [...(groupedLinks[groupName] || [])].sort((a, b) => a.order - b.order)
 
-        const oldIndex = groupLinks.findIndex(l => l.id === active.id)
-        const newIndex = groupLinks.findIndex(l => l.id === over.id)
+        const oldIndex = groupLinks.findIndex(l => l.id === activeLinkId)
+        const newIndex = groupLinks.findIndex(l => l.id === overLinkId)
 
         if (oldIndex !== -1 && newIndex !== -1) {
           const reorderedGroupLinks = arrayMove(groupLinks, oldIndex, newIndex)
 
-          // Update order property for the reordered group
+          // Update order property
           const updatedGroupLinks = reorderedGroupLinks.map((link, index) => ({
             ...link,
             order: index + 1,
           }))
 
-          // Replace old group links with updated ones in the full links array
+          // Replace in full links array
           const otherLinks = links.filter(l => l.group !== groupName)
-          const newAllLinks = [...otherLinks, ...updatedGroupLinks]
-          setLinks(newAllLinks)
+          setLinks([...otherLinks, ...updatedGroupLinks])
 
-          // Update server for each changed link
+          // Persist to server
           updatedGroupLinks.forEach(link => {
-            if (onUpdateLink) {
-              onUpdateLink(link)
-            }
+            if (onUpdateLink) onUpdateLink(link)
           })
         }
       }
@@ -190,45 +233,38 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
 
   return (
     <>
-      <div className="space-y-6">
-        {/* Group Headers DndContext - only for group reordering */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
-          <SortableContext items={sortedGroupNames.map(name => `group-${name}`)} strategy={verticalListSortingStrategy}>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={allSortableIds} strategy={verticalListSortingStrategy}>
+          <div>
             {sortedGroupNames.map((groupName) => {
               const sortedGroupLinks = [...(groupedLinks[groupName] || [])].sort((a, b) => a.order - b.order)
               const groupInfo = groups.find(g => g.name === groupName)
 
               return (
                 <div key={groupName}>
-                  {/* Sortable Group Header */}
                   <SortableGroupHeader groupName={groupName} groupInfo={groupInfo} />
-
-                  {/* Links Section - separate DndContext per group */}
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleLinkDragEnd(groupName)}
-                  >
-                    <SortableContext items={sortedGroupLinks.map((link) => link.id)} strategy={verticalListSortingStrategy}>
-                      <div className="space-y-2 ml-6">
-                        {sortedGroupLinks.map((link) => (
-                          <LinkRow key={link.id} link={link} onEdit={handleEditLink} onDelete={onDeleteLink} />
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                  <div className="space-y-2 ml-6">
+                    {sortedGroupLinks.map((link) => (
+                      <SortableLinkRow
+                        key={link.id}
+                        link={link}
+                        onEdit={handleEditLink}
+                        onDelete={onDeleteLink}
+                      />
+                    ))}
+                  </div>
                 </div>
               )
             })}
-          </SortableContext>
-        </DndContext>
-
-        {sortedGroupNames.length === 0 && (
-          <div className="text-center text-muted-foreground py-8">
-            No links yet. Click "Add New Link" to get started.
           </div>
-        )}
-      </div>
+        </SortableContext>
+      </DndContext>
+
+      {sortedGroupNames.length === 0 && (
+        <div className="text-center text-muted-foreground py-8">
+          No links yet. Click "Add New Link" to get started.
+        </div>
+      )}
 
       <EditLinkSheet
         link={editingLink}
