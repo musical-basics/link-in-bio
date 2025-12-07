@@ -63,23 +63,22 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
                 {/* Header */}
                 <div className="mb-8 flex flex-col items-center text-center">
                     {/* Profile Avatar with crop/fit settings */}
-                    <div className="relative mb-4 h-28 w-28 rounded-full overflow-hidden border-4 border-primary/20">
-                        {profileData.imageUrl ? (
-                            <div
-                                className="absolute inset-0"
+                    <div className="relative mb-4 h-28 w-28 rounded-full overflow-hidden border-4 border-primary/20 bg-muted">
+                        {profileData.imageUrl && profileData.imageUrl !== "/diverse-person-portrait.png" ? (
+                            <img
+                                src={profileData.imageUrl}
+                                alt={profileData.name}
+                                className="absolute inset-0 w-full h-full"
                                 style={{
-                                    backgroundImage: `url(${profileData.imageUrl})`,
-                                    backgroundSize: profileData.imageObjectFit === 'contain' ? 'contain' :
-                                        profileData.imageObjectFit === 'fill' ? '100% 100%' : 'cover',
-                                    backgroundPosition: profileData.imageCrop
-                                        ? `${-profileData.imageCrop.x}px ${-profileData.imageCrop.y}px`
-                                        : 'center',
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundColor: 'hsl(var(--muted))'
+                                    objectFit: profileData.imageObjectFit === 'contain' ? 'contain' :
+                                        profileData.imageObjectFit === 'fill' ? 'fill' : 'cover',
+                                    objectPosition: profileData.imageCrop
+                                        ? `${50 - profileData.imageCrop.x}% ${50 - profileData.imageCrop.y}%`
+                                        : 'center'
                                 }}
                             />
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground text-2xl font-medium">
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground text-2xl font-medium">
                                 {profileData.name
                                     .split(" ")
                                     .map((n) => n[0])
