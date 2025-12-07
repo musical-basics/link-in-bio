@@ -10,7 +10,7 @@ import { ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { updateLink, createLink, deleteLink } from "@/app/actions/links"
-import { getGroups } from "@/app/actions/groups"
+import { getGroups, reorderGroups } from "@/app/actions/groups"
 import { getProfile } from "@/app/actions/profile"
 import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
 import { AddLinkDialog } from "@/components/add-link-dialog"
@@ -109,6 +109,25 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
             }
         }
         setLinks(updatedLinks)
+    }
+
+    const handleReorderGroups = async (newGroupOrder: string[]) => {
+        // Optimistic update - create/update groups with new order
+        const updatedGroups = newGroupOrder.map((name, index) => {
+            const existing = groups.find(g => g.name === name)
+            return existing
+                ? { ...existing, order: index + 1 }
+                : { id: `temp-${name}`, name, description: null, order: index + 1 }
+        })
+        setGroups(updatedGroups)
+
+        // Server update
+        const groupOrders = newGroupOrder.map((name, index) => ({ name, order: index + 1 }))
+        const result = await reorderGroups(groupOrders)
+        if (!result.success) {
+            console.error("Failed to reorder groups")
+            refreshGroups() // Refresh to get correct order
+        }
     }
 
     return (
@@ -213,7 +232,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                 <CardDescription>Drag and drop to reorder links. Click on a link to edit.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} />
+                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} onReorderGroups={handleReorderGroups} />
                             </CardContent>
                         </Card>
                     </div>

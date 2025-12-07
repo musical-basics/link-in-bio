@@ -90,3 +90,40 @@ export async function createGroup(name: string, description?: string) {
         return { success: false, error: 'Failed to create group' }
     }
 }
+
+export async function reorderGroups(groupOrders: { name: string; order: number }[]) {
+    try {
+        const user = await requireAuth()
+
+        // Update each group's order
+        for (const { name, order } of groupOrders) {
+            const existingGroup = await prisma.group.findFirst({
+                where: { name, userId: user.id },
+            })
+
+            if (existingGroup) {
+                await prisma.group.update({
+                    where: { id: existingGroup.id },
+                    data: { order },
+                })
+            } else {
+                // Create group if it doesn't exist (for groups that only exist in links)
+                await prisma.group.create({
+                    data: {
+                        name,
+                        order,
+                        userId: user.id,
+                    },
+                })
+            }
+        }
+
+        revalidatePath('/')
+        revalidatePath('/admin')
+        revalidatePath(`/u/${user.username}`)
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to reorder groups:', error)
+        return { success: false, error: 'Failed to reorder groups' }
+    }
+}
