@@ -13,9 +13,10 @@ interface EditLinkSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (updatedLink: LinkType) => void
+  availableGroups: string[]
 }
 
-export function EditLinkSheet({ link, open, onOpenChange, onSave }: EditLinkSheetProps) {
+export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroups }: EditLinkSheetProps) {
   const [title, setTitle] = useState(link?.title || "")
   const [subtitle, setSubtitle] = useState(link?.subtitle || "")
   const [url, setUrl] = useState(link?.url || "")
@@ -105,10 +106,11 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave }: EditLinkShee
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Work">Work</SelectItem>
-                <SelectItem value="Socials">Socials</SelectItem>
-                <SelectItem value="Music">Music</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
+                {availableGroups.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

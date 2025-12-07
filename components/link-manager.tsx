@@ -20,9 +20,10 @@ interface LinkManagerProps {
   setLinks: (links: LinkType[]) => void
   onUpdateLink?: (link: LinkType) => void
   onDeleteLink?: (link: LinkType) => void
+  availableGroups: string[]
 }
 
-export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink }: LinkManagerProps) {
+export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, availableGroups }: LinkManagerProps) {
   const [editingLink, setEditingLink] = useState<LinkType | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
 
@@ -82,6 +83,7 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink }: Lin
         open={isEditSheetOpen}
         onOpenChange={setIsEditSheetOpen}
         onSave={handleSaveLink}
+        availableGroups={availableGroups}
       />
     </>
   )
