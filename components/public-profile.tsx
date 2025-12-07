@@ -62,30 +62,19 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
 
                 {/* Header */}
                 <div className="mb-8 flex flex-col items-center text-center">
-                    {/* Profile Avatar with crop/fit settings */}
-                    <div className="relative mb-4 h-28 w-28 rounded-full overflow-hidden border-4 border-primary/20 bg-muted">
-                        {profileData.imageUrl && profileData.imageUrl !== "/diverse-person-portrait.png" ? (
-                            <img
-                                src={profileData.imageUrl}
-                                alt={profileData.name}
-                                className="absolute inset-0 w-full h-full"
-                                style={{
-                                    objectFit: profileData.imageObjectFit === 'contain' ? 'contain' :
-                                        profileData.imageObjectFit === 'fill' ? 'fill' : 'cover',
-                                    objectPosition: profileData.imageCrop
-                                        ? `${50 - profileData.imageCrop.x}% ${50 - profileData.imageCrop.y}%`
-                                        : 'center'
-                                }}
-                            />
-                        ) : (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground text-2xl font-medium">
-                                {profileData.name
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
-                            </div>
-                        )}
-                    </div>
+                    <Avatar className="mb-4 h-28 w-28 border-4 border-primary/20">
+                        <AvatarImage
+                            src={profileData.imageUrl || "/placeholder.svg"}
+                            alt={profileData.name}
+                            className="object-cover"
+                        />
+                        <AvatarFallback>
+                            {profileData.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                        </AvatarFallback>
+                    </Avatar>
                     <h1 className="mb-2 text-2xl font-bold text-foreground">{profileData.name}</h1>
                     <p className="text-balance text-muted-foreground">{profileData.bio}</p>
                     <div className="mt-4">
