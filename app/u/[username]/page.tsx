@@ -6,13 +6,13 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 
 interface UserPageProps {
-    params: {
+    params: Promise<{
         username: string
-    }
+    }>
 }
 
 export default async function UserPage({ params }: UserPageProps) {
-    const { username } = params
+    const { username } = await params
 
     // Find user by username
     const user = await prisma.user.findUnique({
@@ -47,7 +47,7 @@ export default async function UserPage({ params }: UserPageProps) {
 }
 
 export async function generateMetadata({ params }: UserPageProps) {
-    const { username } = params
+    const { username } = await params
 
     const user = await prisma.user.findUnique({
         where: { username },
