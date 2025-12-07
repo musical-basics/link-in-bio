@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import type { Link as LinkType } from "@/lib/data"
 import { LinkRow } from "./link-row"
 import { EditLinkSheet } from "./edit-link-sheet"
@@ -34,7 +34,7 @@ interface LinkManagerProps {
   onReorderGroups?: (groupNames: string[]) => void
 }
 
-// Sortable Group Header component (just the header, not the content)
+// Sortable Group Header component
 function SortableGroupHeader({
   groupName,
   groupInfo,
@@ -78,10 +78,22 @@ function SortableGroupHeader({
   )
 }
 
-export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, availableGroups, groups, onReorderGroups }: LinkManagerProps) {
-  const [editingLink, setEditingLink] = useState<LinkType | null>(null)
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
-
+// Links section component with its own DndContext
+function GroupLinksSection({
+  groupLinks,
+  allLinks,
+  setLinks,
+  onUpdateLink,
+  onDeleteLink,
+  handleEditLink,
+}: {
+  groupLinks: LinkType[]
+  allLinks: LinkType[]
+  setLinks: (links: LinkType[]) => void
+  onUpdateLink?: (link: LinkType) => void
+  onDeleteLink?: (link: LinkType) => void
+  handleEditLink: (link: LinkType) => void
+}) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -89,54 +101,14 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
     }),
   )
 
-  // Group links by their group field
-  const groupedLinks = links.reduce((acc, link) => {
-    if (!acc[link.group]) {
-      acc[link.group] = []
-    }
-    acc[link.group].push(link)
-    return acc
-  }, {} as Record<string, LinkType[]>)
-
-  // Sort groups by order (from DB groups first, then any remaining)
-  const sortedGroupNames = [...new Set([
-    ...groups.sort((a, b) => a.order - b.order).map(g => g.name),
-    ...Object.keys(groupedLinks)
-  ])].filter(name => groupedLinks[name]?.length > 0)
-
-  // Handle group reordering
-  function handleGroupDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-
-    if (over && active.id !== over.id) {
-      const activeGroupName = (active.id as string).replace('group-', '')
-      const overGroupName = (over.id as string).replace('group-', '')
-
-      const oldIndex = sortedGroupNames.indexOf(activeGroupName)
-      const newIndex = sortedGroupNames.indexOf(overGroupName)
-
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newOrder = arrayMove(sortedGroupNames, oldIndex, newIndex)
-        if (onReorderGroups) {
-          onReorderGroups(newOrder)
-        }
-      }
-    }
-  }
-
-  // Handle link reordering within a group
   function handleLinkDragEnd(event: DragEndEvent) {
     const { active, over } = event
 
     if (over && active.id !== over.id) {
-      const activeLink = links.find(l => l.id === active.id)
-      const overLink = links.find(l => l.id === over.id)
+      const activeLink = groupLinks.find(l => l.id === active.id)
+      const overLink = groupLinks.find(l => l.id === over.id)
 
-      // Only allow reordering within same group
-      if (activeLink && overLink && activeLink.group === overLink.group) {
-        const groupLinks = links.filter(l => l.group === activeLink.group)
-        const otherLinks = links.filter(l => l.group !== activeLink.group)
-
+      if (activeLink && overLink) {
         const oldIndex = groupLinks.findIndex(l => l.id === active.id)
         const newIndex = groupLinks.findIndex(l => l.id === over.id)
 
@@ -148,9 +120,10 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
           order: index + 1,
         }))
 
-        // Combine with other links
-        const allLinks = [...otherLinks, ...updatedGroupLinks]
-        setLinks(allLinks)
+        // Replace old group links with updated ones in the full links array
+        const otherLinks = allLinks.filter(l => l.group !== activeLink.group)
+        const newAllLinks = [...otherLinks, ...updatedGroupLinks]
+        setLinks(newAllLinks)
 
         // Update server for each changed link
         updatedGroupLinks.forEach(link => {
@@ -158,6 +131,76 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
             onUpdateLink(link)
           }
         })
+      }
+    }
+  }
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleLinkDragEnd}>
+      <SortableContext items={groupLinks.map((link) => link.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2 ml-6">
+          {groupLinks.map((link) => (
+            <LinkRow key={link.id} link={link} onEdit={handleEditLink} onDelete={onDeleteLink} />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  )
+}
+
+export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, availableGroups, groups, onReorderGroups }: LinkManagerProps) {
+  const [editingLink, setEditingLink] = useState<LinkType | null>(null)
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
+
+  const groupSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
+
+  // Group links by their group field - memoized
+  const groupedLinks = useMemo(() => {
+    return links.reduce((acc, link) => {
+      if (!acc[link.group]) {
+        acc[link.group] = []
+      }
+      acc[link.group].push(link)
+      return acc
+    }, {} as Record<string, LinkType[]>)
+  }, [links])
+
+  // Sort groups by order (immutable sort!) - memoized
+  const sortedGroupNames = useMemo(() => {
+    const sortedGroups = [...groups].sort((a, b) => a.order - b.order)
+    return [...new Set([
+      ...sortedGroups.map(g => g.name),
+      ...Object.keys(groupedLinks)
+    ])].filter(name => groupedLinks[name]?.length > 0)
+  }, [groups, groupedLinks])
+
+  // Handle group reordering
+  function handleGroupDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const activeId = active.id as string
+      const overId = over.id as string
+
+      // Only handle group drags (prefixed with group-)
+      if (activeId.startsWith('group-') && overId.startsWith('group-')) {
+        const activeGroupName = activeId.replace('group-', '')
+        const overGroupName = overId.replace('group-', '')
+
+        const oldIndex = sortedGroupNames.indexOf(activeGroupName)
+        const newIndex = sortedGroupNames.indexOf(overGroupName)
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const newOrder = arrayMove(sortedGroupNames, oldIndex, newIndex)
+          if (onReorderGroups) {
+            onReorderGroups(newOrder)
+          }
+        }
       }
     }
   }
@@ -178,11 +221,11 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
   return (
     <>
       <div className="space-y-6">
-        {/* Group Headers - Reorderable */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+        {/* Group Headers DndContext - only for group reordering */}
+        <DndContext sensors={groupSensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
           <SortableContext items={sortedGroupNames.map(name => `group-${name}`)} strategy={verticalListSortingStrategy}>
             {sortedGroupNames.map((groupName) => {
-              const groupLinks = (groupedLinks[groupName] || []).sort((a, b) => a.order - b.order)
+              const sortedGroupLinks = [...(groupedLinks[groupName] || [])].sort((a, b) => a.order - b.order)
               const groupInfo = groups.find(g => g.name === groupName)
 
               return (
@@ -190,21 +233,15 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
                   {/* Sortable Group Header */}
                   <SortableGroupHeader groupName={groupName} groupInfo={groupInfo} />
 
-                  {/* Links - Separate DndContext with different sensors */}
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleLinkDragEnd}
-                    id={`links-${groupName}`}
-                  >
-                    <SortableContext items={groupLinks.map((link) => link.id)} strategy={verticalListSortingStrategy}>
-                      <div className="space-y-2 ml-6">
-                        {groupLinks.map((link) => (
-                          <LinkRow key={link.id} link={link} onEdit={handleEditLink} onDelete={onDeleteLink} />
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                  {/* Links Section - completely separate DndContext */}
+                  <GroupLinksSection
+                    groupLinks={sortedGroupLinks}
+                    allLinks={links}
+                    setLinks={setLinks}
+                    onUpdateLink={onUpdateLink}
+                    onDeleteLink={onDeleteLink}
+                    handleEditLink={handleEditLink}
+                  />
                 </div>
               )
             })}
