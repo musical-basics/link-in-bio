@@ -127,3 +127,38 @@ export async function reorderGroups(groupOrders: { name: string; order: number }
         return { success: false, error: 'Failed to reorder groups' }
     }
 }
+
+export async function deleteGroup(name: string) {
+    try {
+        const user = await requireAuth()
+
+        // Find and delete the group
+        const existingGroup = await prisma.group.findFirst({
+            where: { name, userId: user.id },
+        })
+
+        if (existingGroup) {
+            // Move all links in this group to "General"
+            await prisma.link.updateMany({
+                where: {
+                    userId: user.id,
+                    group: name
+                },
+                data: { group: 'General' },
+            })
+
+            // Delete the group
+            await prisma.group.delete({
+                where: { id: existingGroup.id },
+            })
+        }
+
+        revalidatePath('/')
+        revalidatePath('/admin')
+        revalidatePath(`/u/${user.username}`)
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to delete group:', error)
+        return { success: false, error: 'Failed to delete group' }
+    }
+}

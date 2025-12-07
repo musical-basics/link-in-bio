@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Pencil, Plus } from "lucide-react"
+import { Pencil, Plus, Trash2 } from "lucide-react"
 import type { Link as LinkType } from "@/lib/data"
-import { updateGroupDescription, createGroup } from "@/app/actions/groups"
+import { updateGroupDescription, createGroup, deleteGroup } from "@/app/actions/groups"
 
 interface Group {
     id: string
@@ -24,6 +24,7 @@ interface ManageGroupsDialogProps {
     groups: Group[]
     onUpdateLinks: (links: LinkType[]) => void
     onRefreshGroups: () => void
+    onRefreshLinks?: () => void
 }
 
 export function ManageGroupsDialog({
@@ -33,6 +34,7 @@ export function ManageGroupsDialog({
     groups,
     onUpdateLinks,
     onRefreshGroups,
+    onRefreshLinks,
 }: ManageGroupsDialogProps) {
     const [editingGroup, setEditingGroup] = useState<string | null>(null)
     const [editDescription, setEditDescription] = useState("")
@@ -76,6 +78,15 @@ export function ManageGroupsDialog({
             setNewGroupName("")
             setNewGroupDescription("")
             setIsAddingGroup(false)
+        }
+    }
+
+    const handleDeleteGroup = async (groupName: string) => {
+        if (!confirm(`Delete group "${groupName}"? Links in this group will be moved to "General".`)) return
+        const result = await deleteGroup(groupName)
+        if (result.success) {
+            onRefreshGroups()
+            if (onRefreshLinks) onRefreshLinks()
         }
     }
 
@@ -181,6 +192,9 @@ export function ManageGroupsDialog({
                                             <Badge variant="secondary">{count}</Badge>
                                             <Button type="button" variant="ghost" size="sm" onClick={() => handleEditGroup(groupName)}>
                                                 <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteGroup(groupName)} className="text-destructive hover:text-destructive">
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>

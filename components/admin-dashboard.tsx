@@ -9,7 +9,7 @@ import { LinkManager } from "@/components/link-manager"
 import { ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { updateLink, createLink, deleteLink } from "@/app/actions/links"
+import { updateLink, createLink, deleteLink, getLinks } from "@/app/actions/links"
 import { getGroups, reorderGroups } from "@/app/actions/groups"
 import { getProfile } from "@/app/actions/profile"
 import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
@@ -53,6 +53,13 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
         const result = await getGroups()
         if (result.success) {
             setGroups(result.data as Group[])
+        }
+    }
+
+    const refreshLinks = async () => {
+        const result = await getLinks()
+        if (result.success) {
+            setLinks(result.data as LinkType[])
         }
     }
 
@@ -246,6 +253,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                 groups={groups}
                 onUpdateLinks={handleUpdateGroups}
                 onRefreshGroups={refreshGroups}
+                onRefreshLinks={refreshLinks}
             />
 
             <AddLinkDialog
