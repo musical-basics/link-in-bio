@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { updateProfile } from "@/app/actions/profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Upload } from "lucide-react"
+import { Upload, Edit } from "lucide-react"
+import { ImageEditor } from "@/components/image-editor"
+import type { Area } from "react-easy-crop"
 
 interface EditProfileDialogProps {
     open: boolean
@@ -17,6 +19,8 @@ interface EditProfileDialogProps {
         name: string
         bio?: string | null
         imageUrl?: string | null
+        imageObjectFit?: string | null
+        imageCrop?: { x: number; y: number; zoom: number } | null
     }
     onSuccess: () => void
 }
@@ -28,6 +32,9 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
     const [imagePreview, setImagePreview] = useState<string | null>(initialData.imageUrl || null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [showImageEditor, setShowImageEditor] = useState(false)
+    const [objectFit, setObjectFit] = useState(initialData.imageObjectFit || "cover")
+    const [cropData, setCropData] = useState(initialData.imageCrop || { x: 0, y: 0, zoom: 1 })
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -49,8 +56,15 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
             const base64String = reader.result as string
             setImagePreview(base64String)
             setImageUrl(base64String)
+            // Auto-open editor for new uploads
+            setShowImageEditor(true)
         }
         reader.readAsDataURL(file)
+    }
+
+    const handleImageEditorSave = (data: { croppedArea: Area; zoom: number; objectFit: string }) => {
+        setCropData({ x: data.croppedArea.x, y: data.croppedArea.y, zoom: data.zoom })
+        setObjectFit(data.objectFit)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -63,6 +77,8 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                 name,
                 bio: bio || undefined,
                 imageUrl: imageUrl || undefined,
+                imageObjectFit: objectFit,
+                imageCrop: cropData,
             })
 
             setIsLoading(false)
@@ -106,14 +122,27 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                                         {name.split(" ").map((n) => n[0]).join("")}
                                     </AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1">
-                                    <label
-                                        htmlFor="image-upload"
-                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full cursor-pointer"
-                                    >
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        Upload Image
-                                    </label>
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex gap-2">
+                                        <label
+                                            htmlFor="image-upload"
+                                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 flex-1 cursor-pointer"
+                                        >
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Upload Image
+                                        </label>
+                                        {imagePreview && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setShowImageEditor(true)}
+                                                className="flex-1"
+                                            >
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                Edit Image
+                                            </Button>
+                                        )}
+                                    </div>
                                     <input
                                         id="image-upload"
                                         type="file"
@@ -121,7 +150,7 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                                         onChange={handleImageUpload}
                                         className="hidden"
                                     />
-                                    <p className="text-xs text-muted-foreground mt-2">
+                                    <p className="text-xs text-muted-foreground">
                                         JPG, PNG, or GIF (max 2MB)
                                     </p>
                                 </div>
@@ -173,6 +202,18 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                     </div>
                 </form>
             </DialogContent>
+
+            {/* Image Editor Dialog */}
+            {imagePreview && (
+                <ImageEditor
+                    open={showImageEditor}
+                    onOpenChange={setShowImageEditor}
+                    imageUrl={imagePreview}
+                    onSave={handleImageEditorSave}
+                    initialCrop={cropData}
+                    initialObjectFit={objectFit}
+                />
+            )}
         </Dialog>
     )
 }

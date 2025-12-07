@@ -16,6 +16,6 @@ export default async function AdminPage() {
   const links = linksResult.success ? (linksResult.data as Link[]) : []
   const groups = groupsResult.success ? groupsResult.data : []
 
-  return <AdminDashboard initialLinks={links} initialGroups={groups as any} />
+  return <AdminDashboard initialLinks={links} initialGroups={groups as any} username={session.user.username} />
 }
 

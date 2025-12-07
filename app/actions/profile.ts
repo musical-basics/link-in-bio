@@ -23,6 +23,8 @@ export async function updateProfile(data: {
     name?: string
     bio?: string | null
     imageUrl?: string | null
+    imageObjectFit?: string
+    imageCrop?: { x: number; y: number; zoom: number }
     socials?: any
 }) {
     try {
@@ -42,16 +44,53 @@ export async function updateProfile(data: {
             }
         }
 
+        // Prepare data object, only including fields that exist
+        const updateData: any = {}
+        if (data.name !== undefined) updateData.name = data.name
+        if (data.bio !== undefined) updateData.bio = data.bio
+        if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl
+        if (data.socials !== undefined) updateData.socials = data.socials
+
+        // Only include new fields if they're provided (gracefully handle if DB doesn't have them yet)
+        if (data.imageObjectFit !== undefined) updateData.imageObjectFit = data.imageObjectFit
+        if (data.imageCrop !== undefined) updateData.imageCrop = data.imageCrop
+
         const profile = await prisma.profile.update({
             where: { userId: user.id },
-            data,
+            data: updateData,
         })
 
         revalidatePath('/admin')
         revalidatePath(`/u/${user.username}`)
         return { success: true, data: profile }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to update profile:', error)
+
+        // If it's a field error, try again without the new fields
+        if (error.message?.includes('imageObjectFit') || error.message?.includes('imageCrop')) {
+            try {
+                const retryUser = await requireAuth()
+
+                const fallbackData: any = {}
+                if (data.name !== undefined) fallbackData.name = data.name
+                if (data.bio !== undefined) fallbackData.bio = data.bio
+                if (data.imageUrl !== undefined) fallbackData.imageUrl = data.imageUrl
+                if (data.socials !== undefined) fallbackData.socials = data.socials
+
+                const profile = await prisma.profile.update({
+                    where: { userId: retryUser.id },
+                    data: fallbackData,
+                })
+
+                revalidatePath('/admin')
+                revalidatePath(`/u/${retryUser.username}`)
+                return { success: true, data: profile }
+            } catch (retryError) {
+                console.error('Retry failed:', retryError)
+                return { success: false, error: 'Failed to update profile' }
+            }
+        }
+
         return { success: false, error: 'Failed to update profile' }
     }
 }

@@ -26,9 +26,10 @@ interface Group {
 interface AdminDashboardProps {
     initialLinks: LinkType[]
     initialGroups: Group[]
+    username: string
 }
 
-export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardProps) {
+export function AdminDashboard({ initialLinks, initialGroups, username }: AdminDashboardProps) {
     const [links, setLinks] = useState<LinkType[]>(initialLinks)
     const [groups, setGroups] = useState<Group[]>(initialGroups)
     const [isManageGroupsOpen, setIsManageGroupsOpen] = useState(false)
@@ -119,7 +120,7 @@ export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardPr
                             <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
                             <p className="text-muted-foreground">Manage your links and profile</p>
                         </div>
-                        <Link href="/">
+                        <Link href={`/u/${username}`}>
                             <Button variant="outline">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Public View
@@ -242,6 +243,8 @@ export function AdminDashboard({ initialLinks, initialGroups }: AdminDashboardPr
                         name: profile.name,
                         bio: profile.bio,
                         imageUrl: profile.imageUrl,
+                        imageObjectFit: profile.imageObjectFit,
+                        imageCrop: profile.imageCrop,
                     }}
                     onSuccess={fetchProfile}
                 />
