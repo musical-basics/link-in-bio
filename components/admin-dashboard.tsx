@@ -27,15 +27,16 @@ interface AdminDashboardProps {
     initialLinks: LinkType[]
     initialGroups: Group[]
     username: string
+    initialProfile: any | null
 }
 
-export function AdminDashboard({ initialLinks, initialGroups, username }: AdminDashboardProps) {
+export function AdminDashboard({ initialLinks, initialGroups, username, initialProfile }: AdminDashboardProps) {
     const [links, setLinks] = useState<LinkType[]>(initialLinks)
     const [groups, setGroups] = useState<Group[]>(initialGroups)
     const [isManageGroupsOpen, setIsManageGroupsOpen] = useState(false)
     const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
-    const [profile, setProfile] = useState<any>(null)
+    const [profile, setProfile] = useState<any>(initialProfile)
 
     useEffect(() => {
         fetchProfile()
@@ -145,7 +146,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username }: AdminD
                                         <AvatarFallback>
                                             {(profile?.name || profileData.name)
                                                 .split(" ")
-                                                .map((n) => n[0])
+                                                .map((n: string) => n[0])
                                                 .join("")}
                                         </AvatarFallback>
                                     </Avatar>

@@ -13,6 +13,8 @@ export interface ProfileData {
   name: string
   bio: string
   imageUrl: string
+  imageObjectFit?: string
+  imageCrop?: { x: number; y: number; zoom: number }
   socials: {
     icon: string
     url: string

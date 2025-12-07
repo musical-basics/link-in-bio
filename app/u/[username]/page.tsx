@@ -36,9 +36,10 @@ export default async function UserPage({ params }: UserPageProps) {
     // Transform profile data to match expected format
     const profileData = {
         name: user.profile.name,
-        title: user.profile.bio || "Link in Bio",
         bio: user.profile.bio || "",
-        image: user.profile.imageUrl || "/diverse-person-portrait.png",
+        imageUrl: user.profile.imageUrl || "/diverse-person-portrait.png",
+        imageObjectFit: user.profile.imageObjectFit || "cover",
+        imageCrop: user.profile.imageCrop as { x: number; y: number; zoom: number } | undefined,
         socials: user.profile.socials as any[] || [],
     }
 

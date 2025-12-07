@@ -9,7 +9,7 @@ import { Share2 } from "lucide-react"
 import { SharePageDialog } from "@/components/share-page-dialog"
 import { ShareLinkDialog } from "@/components/share-link-dialog"
 import { useState } from "react"
-import type { Link as LinkType } from "@/lib/data"
+import type { Link as LinkType, ProfileData } from "@/lib/data"
 
 interface Group {
     id: string
@@ -21,13 +21,7 @@ interface Group {
 interface PublicProfileProps {
     initialLinks: LinkType[]
     initialGroups: Group[]
-    profileData: {
-        name: string
-        title: string
-        bio: string
-        image: string
-        socials: any[]
-    }
+    profileData: ProfileData
 }
 
 export function PublicProfile({ initialLinks, initialGroups, profileData }: PublicProfileProps) {
@@ -68,15 +62,31 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
 
                 {/* Header */}
                 <div className="mb-8 flex flex-col items-center text-center">
-                    <Avatar className="mb-4 h-28 w-28 border-4 border-primary/20">
-                        <AvatarImage src={profileData.imageUrl || "/placeholder.svg"} alt={profileData.name} />
-                        <AvatarFallback>
-                            {profileData.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                        </AvatarFallback>
-                    </Avatar>
+                    {/* Profile Avatar with crop/fit settings */}
+                    <div className="relative mb-4 h-28 w-28 rounded-full overflow-hidden border-4 border-primary/20">
+                        {profileData.imageUrl ? (
+                            <div
+                                className="absolute inset-0"
+                                style={{
+                                    backgroundImage: `url(${profileData.imageUrl})`,
+                                    backgroundSize: profileData.imageObjectFit === 'contain' ? 'contain' :
+                                        profileData.imageObjectFit === 'fill' ? '100% 100%' : 'cover',
+                                    backgroundPosition: profileData.imageCrop
+                                        ? `${-profileData.imageCrop.x}px ${-profileData.imageCrop.y}px`
+                                        : 'center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundColor: 'hsl(var(--muted))'
+                                }}
+                            />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground text-2xl font-medium">
+                                {profileData.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                            </div>
+                        )}
+                    </div>
                     <h1 className="mb-2 text-2xl font-bold text-foreground">{profileData.name}</h1>
                     <p className="text-balance text-muted-foreground">{profileData.bio}</p>
                     <div className="mt-4">
@@ -91,7 +101,7 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
                             <LinkGroup
                                 key={groupName}
                                 title={groupName}
-                                description={groupInfo?.description}
+                                description={groupInfo?.description || undefined}
                                 links={links}
                                 onShareLink={handleShareLink}
                             />
