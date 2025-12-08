@@ -22,7 +22,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
     onShare?.(link)
   }
 
-  // Featured layout - large hero image with title overlay
+  // Featured layout - image on top, title bar below (Linktree style)
   if (link.layout === "featured") {
     return (
       <div className="relative group/container">
@@ -31,42 +31,34 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
           target="_blank"
           rel="noopener noreferrer"
           data-link-id={link.id}
-          className="group block w-full rounded-2xl overflow-hidden transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/20"
+          className="group block w-full rounded-xl overflow-hidden bg-neutral-800 transition-all hover:scale-[1.01]"
         >
           {link.thumbnail ? (
-            <div className="relative aspect-video">
-              <img src={link.thumbnail} alt={link.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="font-semibold text-white text-lg">{link.title}</h3>
-                {link.subtitle && <p className="text-sm text-white/80">{link.subtitle}</p>}
-              </div>
-            </div>
+            <img src={link.thumbnail} alt={link.title} className="w-full aspect-video object-cover" />
           ) : (
-            <div className="relative aspect-video bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-              <IconComponent className="h-16 w-16 text-primary/50" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
-                <h3 className="font-semibold text-white text-lg">{link.title}</h3>
-                {link.subtitle && <p className="text-sm text-white/80">{link.subtitle}</p>}
-              </div>
+            <div className="w-full aspect-video bg-gradient-to-br from-neutral-700 to-neutral-800 flex items-center justify-center">
+              <IconComponent className="h-16 w-16 text-neutral-500" />
             </div>
           )}
+          <div className="px-4 py-3 flex items-center justify-between">
+            <h3 className="font-medium text-white">{link.title}</h3>
+            {onShare && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleShareClick}
+                className="h-8 w-8 opacity-0 transition-opacity group-hover/container:opacity-100 hover:bg-neutral-700 text-neutral-400"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </a>
-        {onShare && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleShareClick}
-            className="absolute right-2 top-2 opacity-0 transition-opacity group-hover/container:opacity-100 hover:bg-white/20 text-white"
-          >
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        )}
       </div>
     )
   }
 
-  // Classic layout - compact with icon
+  // Classic layout - dark card with rounded thumbnail (Linktree style)
   return (
     <div className="relative group/container">
       <a
@@ -74,29 +66,28 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
         target="_blank"
         rel="noopener noreferrer"
         data-link-id={link.id}
-        className="group flex w-full items-center gap-4 rounded-2xl bg-card p-4 transition-all hover:scale-[1.02] hover:bg-card/80 hover:shadow-lg hover:shadow-primary/20"
+        className="group flex w-full items-center gap-4 rounded-xl bg-neutral-800 px-4 py-3 transition-all hover:scale-[1.01] hover:bg-neutral-700"
       >
         {link.thumbnail ? (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl overflow-hidden">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden">
             <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-            <IconComponent className="h-6 w-6" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-700 text-neutral-400">
+            <IconComponent className="h-5 w-5" />
           </div>
         )}
         <div className="flex-1 text-left">
-          <h3 className="font-semibold text-foreground">{link.title}</h3>
-          <p className="text-sm text-muted-foreground">{link.subtitle}</p>
+          <h3 className="font-medium text-white">{link.title}</h3>
         </div>
-        <LucideIcons.ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+        <LucideIcons.ChevronRight className="h-5 w-5 text-neutral-500 transition-transform group-hover:translate-x-0.5" />
       </a>
       {onShare && (
         <Button
           variant="ghost"
           size="icon"
           onClick={handleShareClick}
-          className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/container:opacity-100 hover:bg-muted"
+          className="absolute right-10 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 transition-opacity group-hover/container:opacity-100 hover:bg-neutral-700 text-neutral-400"
         >
           <MoreVertical className="h-4 w-4" />
         </Button>

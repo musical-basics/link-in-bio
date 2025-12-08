@@ -11,13 +11,14 @@ interface LinkGroupProps {
 export function LinkGroup({ title, description, links, onShareLink }: LinkGroupProps) {
   return (
     <div className="space-y-3">
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{title}</h2>
+      {/* Center-aligned title like Linktree */}
+      <div className="text-center py-2">
+        <h2 className="text-sm font-semibold text-white">{title}</h2>
         {description && (
-          <p className="text-sm text-muted-foreground/70">{description}</p>
+          <p className="text-xs text-neutral-400">{description}</p>
         )}
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2">
         {links.map((link) => (
           <LinkButton key={link.id} link={link} onShare={onShareLink} />
         ))}
@@ -25,4 +26,3 @@ export function LinkGroup({ title, description, links, onShareLink }: LinkGroupP
     </div>
   )
 }
-

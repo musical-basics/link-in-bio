@@ -5,7 +5,7 @@ import { LinkGroup } from "@/components/link-group"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SocialIcons } from "@/components/social-icons"
-import { Share2 } from "lucide-react"
+import { Share2, Sparkles } from "lucide-react"
 import { SharePageDialog } from "@/components/share-page-dialog"
 import { ShareLinkDialog } from "@/components/share-link-dialog"
 import { useState } from "react"
@@ -54,56 +54,64 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
     ])].filter(name => groupedLinks[name]?.length > 0)
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="mx-auto max-w-2xl px-6 py-12">
-                <div className="mb-8 flex justify-end">
-                    <Button variant="ghost" size="icon" onClick={() => setSharePageOpen(true)} className="rounded-full">
-                        <Share2 className="h-5 w-5" />
-                    </Button>
-                </div>
+        <div className="min-h-screen bg-black">
+            {/* Grey card container like Linktree */}
+            <div className="mx-auto max-w-lg px-4 py-8">
+                <div className="rounded-3xl bg-neutral-900 px-6 py-8">
+                    {/* Top icons */}
+                    <div className="mb-6 flex justify-between items-center">
+                        <Button variant="ghost" size="icon" className="rounded-full bg-neutral-800 text-white hover:bg-neutral-700">
+                            <Sparkles className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setSharePageOpen(true)} className="rounded-full bg-neutral-800 text-white hover:bg-neutral-700">
+                            <Share2 className="h-4 w-4" />
+                        </Button>
+                    </div>
 
-                {/* Header */}
-                <div className="mb-8 flex flex-col items-center text-center">
-                    <Avatar className="mb-4 h-28 w-28 border-4 border-primary/20">
-                        <AvatarImage
-                            src={profileData.imageUrl || "/placeholder.svg"}
-                            alt={profileData.name}
-                            className="object-cover"
-                        />
-                        <AvatarFallback>
-                            {profileData.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                        </AvatarFallback>
-                    </Avatar>
-                    <h1 className="mb-2 text-2xl font-bold text-foreground">{profileData.name}</h1>
-                    <p className="text-balance text-muted-foreground">{profileData.bio}</p>
-                    <div className="mt-4">
-                        <SocialIcons socials={profileData.socials.filter(s => s.isActive !== false)} />
+                    {/* Header */}
+                    <div className="mb-8 flex flex-col items-center text-center">
+                        <Avatar className="mb-4 h-24 w-24 border-2 border-neutral-700">
+                            <AvatarImage
+                                src={profileData.imageUrl || "/placeholder.svg"}
+                                alt={profileData.name}
+                                className="object-cover"
+                            />
+                            <AvatarFallback className="bg-neutral-800 text-white">
+                                {profileData.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                            </AvatarFallback>
+                        </Avatar>
+                        <h1 className="mb-1 text-2xl font-bold text-white">{profileData.name}</h1>
+                        <p className="text-neutral-400">{profileData.bio}</p>
+                        <div className="mt-4">
+                            <SocialIcons socials={profileData.socials.filter(s => s.isActive !== false)} />
+                        </div>
+                    </div>
+
+                    {/* Links */}
+                    <div className="space-y-6">
+                        {sortedGroupNames.map((groupName) => {
+                            const groupInfo = initialGroups.find((g: Group) => g.name === groupName)
+                            const links = (groupedLinks[groupName] || []).sort((a, b) => a.order - b.order)
+                            return (
+                                <LinkGroup
+                                    key={groupName}
+                                    title={groupName}
+                                    description={groupInfo?.description || undefined}
+                                    links={links}
+                                    onShareLink={handleShareLink}
+                                />
+                            )
+                        })}
                     </div>
                 </div>
 
-                <div className="space-y-8">
-                    {sortedGroupNames.map((groupName) => {
-                        const groupInfo = initialGroups.find((g: Group) => g.name === groupName)
-                        const links = (groupedLinks[groupName] || []).sort((a, b) => a.order - b.order)
-                        return (
-                            <LinkGroup
-                                key={groupName}
-                                title={groupName}
-                                description={groupInfo?.description || undefined}
-                                links={links}
-                                onShareLink={handleShareLink}
-                            />
-                        )
-                    })}
-                </div>
-
-                {/* Admin Link */}
-                <div className="mt-12 text-center">
+                {/* Admin Link - outside card */}
+                <div className="mt-8 text-center">
                     <Link href="/admin">
-                        <Button variant="outline" size="sm">
+                        <Button variant="ghost" size="sm" className="text-neutral-500 hover:text-white hover:bg-neutral-800">
                             Admin Dashboard
                         </Button>
                     </Link>
