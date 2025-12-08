@@ -64,8 +64,8 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
     }
 
     const handleUpdateLink = async (updatedLink: LinkType) => {
-        // Optimistic update
-        setLinks(links.map((link) => (link.id === updatedLink.id ? updatedLink : link)))
+        // Optimistic update - use functional update to avoid stale closure
+        setLinks(prevLinks => prevLinks.map((link) => (link.id === updatedLink.id ? updatedLink : link)))
 
         // Server update
         const result = await updateLink(updatedLink.id, updatedLink)
