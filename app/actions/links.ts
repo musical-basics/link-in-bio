@@ -46,7 +46,18 @@ export async function updateLink(id: string, data: any) {
         if (data.order !== undefined) updateData.order = data.order
         if (data.isActive !== undefined) updateData.isActive = data.isActive
         if (data.layout !== undefined) updateData.layout = data.layout
-        if (data.thumbnail !== undefined) updateData.thumbnail = data.thumbnail
+
+        // Handle thumbnail with size validation (5MB limit)
+        if (data.thumbnail !== undefined) {
+            if (data.thumbnail && data.thumbnail.startsWith('data:image')) {
+                const base64Length = data.thumbnail.length
+                const estimatedSizeInMB = (base64Length * 0.75) / (1024 * 1024)
+                if (estimatedSizeInMB > 5) {
+                    return { success: false, error: 'Thumbnail is too large. Please use an image under 5MB.' }
+                }
+            }
+            updateData.thumbnail = data.thumbnail
+        }
 
         const updatedLink = await prisma.link.update({
             where: { id },
