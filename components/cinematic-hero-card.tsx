@@ -114,7 +114,7 @@ export function CinematicHeroCard({
                     <source src={videoUrl || defaultVideoUrl} type="video/mp4" />
                 </video>
 
-                <div className="absolute inset-0 bg-black/60" />
+                <div className="absolute inset-0 bg-black/70" />
 
                 {/* Subtle spotlight effect */}
                 <motion.div
@@ -147,8 +147,8 @@ export function CinematicHeroCard({
                     }}
                 />
 
-                {/* Glassmorphism backdrop */}
-                <div className="absolute inset-0 rounded-xl backdrop-blur-sm bg-gradient-to-br from-white/5 via-white/2 to-transparent" />
+                {/* Gradient overlay for depth */}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent" />
 
                 {/* Content */}
                 <div className="relative px-6 py-10 sm:py-14 flex flex-col items-center text-center space-y-6">
@@ -175,40 +175,34 @@ export function CinematicHeroCard({
                         {subtitle}
                     </motion.p>
 
-                    {/* CTA Button */}
+                    {/* CTA Button - Modern filled style */}
                     <motion.button
                         variants={buttonVariants}
                         whileHover="hover"
                         onClick={onCtaClick}
-                        className="group relative mt-2 px-6 py-2.5 rounded-lg text-sm font-medium text-white transition-all duration-300"
+                        className="group relative mt-2 px-8 py-3 rounded-full text-sm font-medium text-white overflow-hidden"
                     >
-                        {/* Button background with gradient on hover */}
-                        <motion.div
-                            className="absolute inset-0 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 opacity-0 -z-10"
-                            whileHover={{ opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                        />
+                        {/* Gradient background */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500" />
 
-                        {/* Border */}
-                        <div className="absolute inset-0 rounded-lg border border-amber-700/50 group-hover:border-amber-500/70 transition-colors duration-300" />
+                        {/* Shimmer effect on hover */}
+                        <motion.div
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
+                            whileHover={{ translateX: "100%" }}
+                            transition={{ duration: 0.6 }}
+                        />
 
                         {/* Button content */}
                         <div className="relative flex items-center justify-center gap-2">
-                            <motion.div variants={arrowVariants} initial="rest" whileHover="hover">
+                            <span>{ctaText}</span>
+                            <motion.div
+                                initial={{ x: 0 }}
+                                whileHover={{ x: 4 }}
+                                transition={{ duration: 0.2 }}
+                            >
                                 <ArrowRight className="w-4 h-4" />
                             </motion.div>
-                            <span>{ctaText}</span>
                         </div>
-
-                        {/* Subtle glow on hover */}
-                        <motion.div
-                            className="absolute inset-0 rounded-lg opacity-0 blur-lg -z-10"
-                            whileHover={{
-                                opacity: 1,
-                                background: "rgba(217, 119, 6, 0.3)",
-                            }}
-                            transition={{ duration: 0.3 }}
-                        />
                     </motion.button>
                 </div>
             </div>
