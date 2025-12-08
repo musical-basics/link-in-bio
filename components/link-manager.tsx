@@ -78,38 +78,6 @@ function SortableGroupHeader({
   )
 }
 
-// Sortable Link component wrapper
-function SortableLinkRow({
-  link,
-  onEdit,
-  onDelete
-}: {
-  link: LinkType
-  onEdit: (link: LinkType) => void
-  onDelete?: (link: LinkType) => void
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `link:${link.id}` })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <LinkRow link={link} onEdit={onEdit} onDelete={onDelete} />
-    </div>
-  )
-}
-
 export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, availableGroups, groups, onReorderGroups }: LinkManagerProps) {
   const [editingLink, setEditingLink] = useState<LinkType | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
@@ -245,11 +213,12 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
                   <SortableGroupHeader groupName={groupName} groupInfo={groupInfo} />
                   <div className="space-y-2 ml-6">
                     {sortedGroupLinks.map((link) => (
-                      <SortableLinkRow
+                      <LinkRow
                         key={link.id}
                         link={link}
                         onEdit={handleEditLink}
                         onDelete={onDeleteLink}
+                        sortableId={`link:${link.id}`}
                       />
                     ))}
                   </div>

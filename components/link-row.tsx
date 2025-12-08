@@ -24,12 +24,13 @@ interface LinkRowProps {
   link: LinkType
   onEdit?: (link: LinkType) => void
   onDelete?: (link: LinkType) => void
+  sortableId?: string
 }
 
-export function LinkRow({ link, onEdit, onDelete }: LinkRowProps) {
+export function LinkRow({ link, onEdit, onDelete, sortableId }: LinkRowProps) {
   const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sortableId || link.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
