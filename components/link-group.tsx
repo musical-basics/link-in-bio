@@ -13,7 +13,7 @@ export function LinkGroup({ title, description, links, onShareLink }: LinkGroupP
     <div className="space-y-3">
       {/* Center-aligned title like Linktree */}
       <div className="text-center py-2">
-        <h2 className="text-sm font-semibold text-white">{title}</h2>
+        <h2 className="text-base font-semibold text-white">{title}</h2>
         {description && (
           <p className="text-xs text-neutral-400">{description}</p>
         )}

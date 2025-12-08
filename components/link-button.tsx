@@ -41,7 +41,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
             </div>
           )}
           <div className="px-4 py-3 flex items-center justify-between">
-            <h3 className="font-medium text-white">{link.title}</h3>
+            <h3 className="text-sm font-medium text-white">{link.title}</h3>
             {onShare && (
               <Button
                 variant="ghost"
@@ -78,7 +78,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
           </div>
         )}
         <div className="flex-1 text-left">
-          <h3 className="font-medium text-white">{link.title}</h3>
+          <h3 className="text-sm font-medium text-white">{link.title}</h3>
         </div>
         <LucideIcons.ChevronRight className="h-5 w-5 text-neutral-500 transition-transform group-hover:translate-x-0.5" />
       </a>
