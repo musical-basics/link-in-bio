@@ -54,10 +54,16 @@ export function LinkRow({ link, onEdit, onDelete, onToggleActive, sortableId }: 
         <GripVertical className="h-5 w-5" />
       </button>
 
-      {/* Icon */}
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <IconComponent className="h-5 w-5" />
-      </div>
+      {/* Thumbnail / Icon */}
+      {link.thumbnail ? (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+          <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
+        </div>
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <IconComponent className="h-5 w-5" />
+        </div>
+      )}
 
       {/* Link Info */}
       <div className="flex-1">

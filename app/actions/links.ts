@@ -36,9 +36,21 @@ export async function updateLink(id: string, data: any) {
             return { success: false, error: 'Link not found or unauthorized' }
         }
 
+        // Extract only updatable fields to avoid Prisma errors
+        const updateData: any = {}
+        if (data.title !== undefined) updateData.title = data.title
+        if (data.subtitle !== undefined) updateData.subtitle = data.subtitle
+        if (data.url !== undefined) updateData.url = data.url
+        if (data.icon !== undefined) updateData.icon = data.icon
+        if (data.group !== undefined) updateData.group = data.group
+        if (data.order !== undefined) updateData.order = data.order
+        if (data.isActive !== undefined) updateData.isActive = data.isActive
+        if (data.layout !== undefined) updateData.layout = data.layout
+        if (data.thumbnail !== undefined) updateData.thumbnail = data.thumbnail
+
         const updatedLink = await prisma.link.update({
             where: { id },
-            data,
+            data: updateData,
         })
         revalidatePath('/')
         revalidatePath('/admin')
