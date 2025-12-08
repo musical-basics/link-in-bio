@@ -1,12 +1,27 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { Link as LinkType } from "@/lib/data"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import * as LucideIcons from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
+// Common icons to show in the picker
+const COMMON_ICONS = [
+  "Globe", "Music", "Video", "Youtube", "Twitter", "Instagram",
+  "Facebook", "Linkedin", "Github", "Mail", "Phone", "Link",
+  "ShoppingCart", "ShoppingBag", "CreditCard", "FileText", "Book", "Newspaper",
+  "Camera", "Image", "Mic", "Headphones", "Podcast", "Gift",
+  "Cloud", "Send", "MessageCircle", "Heart", "Star", "Users",
+  "Home", "MapPin", "Calendar", "Clock", "Briefcase", "Code",
+  "Twitch", "Spotify", "Apple", "Chrome", "Coffee", "Gamepad2",
+]
 
 interface EditLinkSheetProps {
   link: LinkType | null
@@ -21,6 +36,7 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
   const [subtitle, setSubtitle] = useState(link?.subtitle || "")
   const [url, setUrl] = useState(link?.url || "")
   const [icon, setIcon] = useState(link?.icon || "Link")
+  const [iconSearch, setIconSearch] = useState("")
   const [group, setGroup] = useState(link?.group || "Work")
 
   // Update form whenever link changes
@@ -31,8 +47,16 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
       setUrl(link.url)
       setIcon(link.icon)
       setGroup(link.group)
+      setIconSearch("")
     }
   }, [link])
+
+  // Filter icons based on search
+  const filteredIcons = useMemo(() => {
+    if (!iconSearch.trim()) return COMMON_ICONS
+    const search = iconSearch.toLowerCase()
+    return COMMON_ICONS.filter((iconName) => iconName.toLowerCase().includes(search))
+  }, [iconSearch])
 
   const handleOpenChange = (open: boolean) => {
     onOpenChange(open)
@@ -51,6 +75,8 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
       onOpenChange(false)
     }
   }
+
+  const SelectedIconComponent = (LucideIcons[icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -91,12 +117,52 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
             />
           </div>
 
+          {/* Icon Picker */}
           <div className="space-y-2">
-            <Label htmlFor="icon">Icon Name</Label>
-            <Input id="icon" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Globe" />
-            <p className="text-xs text-muted-foreground">
-              Use any Lucide icon name (e.g., Globe, Music, Twitter, Instagram)
-            </p>
+            <Label>Icon</Label>
+            <Tabs defaultValue="lucide" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="lucide">Lucide Icons</TabsTrigger>
+                <TabsTrigger value="custom">Custom Image</TabsTrigger>
+              </TabsList>
+              <TabsContent value="lucide" className="space-y-3">
+                <Input
+                  placeholder="Search icons..."
+                  value={iconSearch}
+                  onChange={(e) => setIconSearch(e.target.value)}
+                />
+                <ScrollArea className="h-48 rounded-md border p-2">
+                  <div className="grid grid-cols-6 gap-2">
+                    {filteredIcons.map((iconName) => {
+                      const IconComp = LucideIcons[iconName as keyof typeof LucideIcons] as LucideIcon
+                      if (!IconComp) return null
+                      return (
+                        <button
+                          key={iconName}
+                          type="button"
+                          onClick={() => setIcon(iconName)}
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${icon === iconName
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "hover:bg-accent"
+                            }`}
+                        >
+                          <IconComp className="h-5 w-5" />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </ScrollArea>
+                <div className="flex items-center gap-2 rounded-lg border p-2">
+                  <SelectedIconComponent className="h-5 w-5 text-primary" />
+                  <span className="text-sm">Selected: {icon}</span>
+                </div>
+              </TabsContent>
+              <TabsContent value="custom">
+                <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+                  <p>Custom image upload coming soon</p>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div className="space-y-2">
