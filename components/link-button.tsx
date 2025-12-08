@@ -66,7 +66,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
         target="_blank"
         rel="noopener noreferrer"
         data-link-id={link.id}
-        className="group flex w-full items-center gap-4 rounded-xl bg-neutral-800 px-4 py-3 transition-all hover:scale-[1.01] hover:bg-neutral-700"
+        className="group flex w-full items-center gap-3 rounded-lg bg-neutral-800 pl-2 pr-3 py-2 transition-all hover:scale-[1.01] hover:bg-neutral-700"
       >
         {link.thumbnail ? (
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden">
