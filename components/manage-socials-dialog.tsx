@@ -10,6 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Plus, GripVertical, Pencil, Trash2, ChevronLeft, Search } from "lucide-react"
 import * as LucideIcons from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core"
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 // Predefined social platforms with their icons and URL templates
 const SOCIAL_PLATFORMS = [
@@ -42,6 +45,53 @@ interface ManageSocialsDialogProps {
     onOpenChange: (open: boolean) => void
     socials: Social[]
     onSave: (socials: Social[]) => void
+}
+
+// Sortable item component for drag and drop
+function SortableSocialItem({
+    id,
+    social,
+    IconComp,
+    onEdit,
+    onToggleActive,
+}: {
+    id: string
+    social: Social
+    IconComp: LucideIcon
+    onEdit: () => void
+    onToggleActive: (checked: boolean) => void
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    }
+
+    return (
+        <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+            <button className="cursor-grab text-muted-foreground hover:text-foreground" {...attributes} {...listeners}>
+                <GripVertical className="h-4 w-4" />
+            </button>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <IconComp className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+                <p className="font-medium">{social.label}</p>
+                {social.url && (
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">{social.url}</p>
+                )}
+            </div>
+            <Button variant="ghost" size="icon" onClick={onEdit}>
+                <Pencil className="h-4 w-4" />
+            </Button>
+            <Switch
+                checked={social.isActive !== false}
+                onCheckedChange={onToggleActive}
+            />
+        </div>
+    )
 }
 
 export function ManageSocialsDialog({
@@ -123,6 +173,23 @@ export function ManageSocialsDialog({
         onOpenChange(false)
     }
 
+    // DnD sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    )
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event
+        if (over && active.id !== over.id) {
+            const oldIndex = currentSocials.findIndex((_, i) => `social-${i}` === active.id)
+            const newIndex = currentSocials.findIndex((_, i) => `social-${i}` === over.id)
+            setCurrentSocials(arrayMove(currentSocials, oldIndex, newIndex))
+        }
+    }
+
     const filteredPlatforms = SOCIAL_PLATFORMS.filter(
         (p) => p.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -144,32 +211,32 @@ export function ManageSocialsDialog({
 
                         <div className="space-y-4 mt-4">
                             {currentSocials.length > 0 ? (
-                                <div className="space-y-2">
-                                    {currentSocials.map((social, index) => {
-                                        const IconComp = (LucideIcons[social.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
-                                        return (
-                                            <div key={index} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
-                                                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                                                    <IconComp className="h-5 w-5 text-primary" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="font-medium">{social.label}</p>
-                                                    {social.url && (
-                                                        <p className="text-xs text-muted-foreground truncate max-w-[200px]">{social.url}</p>
-                                                    )}
-                                                </div>
-                                                <Button variant="ghost" size="icon" onClick={() => handleEditSocial(index)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Switch
-                                                    checked={social.isActive !== false}
-                                                    onCheckedChange={(checked) => handleToggleActive(index, checked)}
-                                                />
-                                            </div>
-                                        )
-                                    })}
-                                </div>
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={handleDragEnd}
+                                >
+                                    <SortableContext
+                                        items={currentSocials.map((_, i) => `social-${i}`)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        <div className="space-y-2">
+                                            {currentSocials.map((social, index) => {
+                                                const IconComp = (LucideIcons[social.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
+                                                return (
+                                                    <SortableSocialItem
+                                                        key={`social-${index}`}
+                                                        id={`social-${index}`}
+                                                        social={social}
+                                                        IconComp={IconComp}
+                                                        onEdit={() => handleEditSocial(index)}
+                                                        onToggleActive={(checked) => handleToggleActive(index, checked)}
+                                                    />
+                                                )
+                                            })}
+                                        </div>
+                                    </SortableContext>
+                                </DndContext>
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
                                     No social icons added yet. Click "Add Social Icon" to get started.
