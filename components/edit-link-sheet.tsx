@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import * as LucideIcons from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { Upload, X, ImageIcon, LayoutGrid } from "lucide-react"
 
 // Common icons to show in the picker
 const COMMON_ICONS = [
@@ -38,6 +40,8 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
   const [icon, setIcon] = useState(link?.icon || "Link")
   const [iconSearch, setIconSearch] = useState("")
   const [group, setGroup] = useState(link?.group || "Work")
+  const [layout, setLayout] = useState<"classic" | "featured">(link?.layout || "classic")
+  const [thumbnail, setThumbnail] = useState<string | undefined>(link?.thumbnail)
 
   // Update form whenever link changes
   useEffect(() => {
@@ -48,6 +52,8 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
       setIcon(link.icon)
       setGroup(link.group)
       setIconSearch("")
+      setLayout(link.layout || "classic")
+      setThumbnail(link.thumbnail)
     }
   }, [link])
 
@@ -62,6 +68,17 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
     onOpenChange(open)
   }
 
+  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setThumbnail(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSave = () => {
     if (link) {
       onSave({
@@ -71,6 +88,8 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
         url,
         icon,
         group,
+        layout,
+        thumbnail,
       })
       onOpenChange(false)
     }
@@ -142,8 +161,8 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
                           type="button"
                           onClick={() => setIcon(iconName)}
                           className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${icon === iconName
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "hover:bg-accent"
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "hover:bg-accent"
                             }`}
                         >
                           <IconComp className="h-5 w-5" />
@@ -157,12 +176,68 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
                   <span className="text-sm">Selected: {icon}</span>
                 </div>
               </TabsContent>
-              <TabsContent value="custom">
-                <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                  <p>Custom image upload coming soon</p>
-                </div>
+              <TabsContent value="custom" className="space-y-3">
+                {thumbnail ? (
+                  <div className="relative">
+                    <img src={thumbnail} alt="Thumbnail" className="w-full h-32 object-cover rounded-lg" />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8"
+                      onClick={() => setThumbnail(undefined)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center text-muted-foreground cursor-pointer hover:bg-accent transition-colors">
+                    <Upload className="h-8 w-8" />
+                    <span>Click to upload thumbnail</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleThumbnailUpload}
+                    />
+                  </label>
+                )}
+                <p className="text-xs text-muted-foreground">Upload an image to use as thumbnail (for classic) or hero image (for featured)</p>
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Layout Selector */}
+          <div className="space-y-3">
+            <Label>Layout</Label>
+            <RadioGroup value={layout} onValueChange={(v) => setLayout(v as "classic" | "featured")} className="space-y-2">
+              <label className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-colors ${layout === "classic" ? "border-primary bg-primary/5" : "hover:bg-accent"}`}>
+                <RadioGroupItem value="classic" id="classic" />
+                <div className="flex-1">
+                  <p className="font-medium">Classic</p>
+                  <p className="text-xs text-muted-foreground">Efficient, direct and compact</p>
+                </div>
+                <div className="w-24 h-12 bg-muted rounded-lg flex items-center gap-2 px-2">
+                  <div className="w-8 h-8 rounded bg-primary/20" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-2 bg-foreground/20 rounded" />
+                    <div className="h-1.5 bg-foreground/10 rounded w-2/3" />
+                  </div>
+                </div>
+              </label>
+              <label className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-colors ${layout === "featured" ? "border-primary bg-primary/5" : "hover:bg-accent"}`}>
+                <RadioGroupItem value="featured" id="featured" />
+                <div className="flex-1">
+                  <p className="font-medium">Featured</p>
+                  <p className="text-xs text-muted-foreground">Larger display with hero image</p>
+                </div>
+                <div className="w-24 h-16 bg-muted rounded-lg flex flex-col">
+                  <div className="flex-1 bg-primary/20 rounded-t-lg" />
+                  <div className="h-4 px-2 flex items-center">
+                    <div className="h-1.5 bg-foreground/20 rounded w-3/4" />
+                  </div>
+                </div>
+              </label>
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">

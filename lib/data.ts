@@ -8,6 +8,8 @@ export interface Link {
   clicks: number
   order: number
   isActive: boolean
+  layout: "classic" | "featured"
+  thumbnail?: string
 }
 
 export interface ProfileData {
@@ -59,6 +61,7 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 1,
     isActive: true,
+    layout: "classic",
   },
   {
     id: "2",
@@ -70,6 +73,7 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 2,
     isActive: true,
+    layout: "classic",
   },
   {
     id: "3",
@@ -81,6 +85,7 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 3,
     isActive: true,
+    layout: "classic",
   },
   {
     id: "4",
@@ -92,6 +97,7 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 4,
     isActive: true,
+    layout: "classic",
   },
   {
     id: "5",
@@ -103,6 +109,7 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 5,
     isActive: true,
+    layout: "classic",
   },
   {
     id: "6",
@@ -114,6 +121,7 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 6,
     isActive: true,
+    layout: "classic",
   },
   {
     id: "7",
@@ -125,5 +133,6 @@ export const linksData: Link[] = [
     clicks: 0,
     order: 7,
     isActive: true,
+    layout: "classic",
   },
 ]
