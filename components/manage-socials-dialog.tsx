@@ -13,20 +13,20 @@ import type { LucideIcon } from "lucide-react"
 
 // Predefined social platforms with their icons and URL templates
 const SOCIAL_PLATFORMS = [
-    { id: "instagram", name: "Instagram", icon: "Instagram", placeholder: "https://instagram.com/username" },
-    { id: "youtube", name: "YouTube", icon: "Youtube", placeholder: "https://youtube.com/@channel" },
-    { id: "twitch", name: "Twitch", icon: "Twitch", placeholder: "https://twitch.tv/username" },
-    { id: "tiktok", name: "Music", icon: "Music", placeholder: "https://tiktok.com/@username" }, // TikTok uses Music icon
-    { id: "spotify", name: "Spotify", icon: "Music2", placeholder: "https://open.spotify.com/artist/..." },
-    { id: "linkedin", name: "LinkedIn", icon: "Linkedin", placeholder: "https://linkedin.com/in/username" },
-    { id: "discord", name: "Discord", icon: "MessageCircle", placeholder: "https://discord.gg/invite" },
-    { id: "applemusic", name: "Apple Music", icon: "Headphones", placeholder: "https://music.apple.com/..." },
-    { id: "snapchat", name: "Snapchat", icon: "Ghost", placeholder: "https://snapchat.com/add/username" },
-    { id: "whatsapp", name: "WhatsApp", icon: "MessageSquare", placeholder: "https://wa.me/1234567890" },
-    { id: "twitter", name: "X (Twitter)", icon: "Twitter", placeholder: "https://twitter.com/username" },
-    { id: "facebook", name: "Facebook", icon: "Facebook", placeholder: "https://facebook.com/username" },
-    { id: "email", name: "Email", icon: "Mail", placeholder: "mailto:your@email.com" },
-    { id: "payment", name: "Payment", icon: "CreditCard", placeholder: "https://paypal.me/username" },
+    { id: "instagram", name: "Instagram", icon: "Instagram", urlPrefix: "https://instagram.com/", inputType: "username", placeholder: "username" },
+    { id: "youtube", name: "YouTube", icon: "Youtube", urlPrefix: "https://youtube.com/@", inputType: "username", placeholder: "channel" },
+    { id: "twitch", name: "Twitch", icon: "Twitch", urlPrefix: "https://twitch.tv/", inputType: "username", placeholder: "username" },
+    { id: "tiktok", name: "TikTok", icon: "Clapperboard", urlPrefix: "https://tiktok.com/@", inputType: "username", placeholder: "username" },
+    { id: "spotify", name: "Spotify", icon: "Music2", urlPrefix: "", inputType: "url", placeholder: "https://open.spotify.com/artist/..." },
+    { id: "linkedin", name: "LinkedIn", icon: "Linkedin", urlPrefix: "https://linkedin.com/in/", inputType: "username", placeholder: "username" },
+    { id: "discord", name: "Discord", icon: "MessageCircle", urlPrefix: "https://discord.gg/", inputType: "username", placeholder: "invite-code" },
+    { id: "applemusic", name: "Apple Music", icon: "Headphones", urlPrefix: "", inputType: "url", placeholder: "https://music.apple.com/..." },
+    { id: "snapchat", name: "Snapchat", icon: "Ghost", urlPrefix: "https://snapchat.com/add/", inputType: "username", placeholder: "username" },
+    { id: "whatsapp", name: "WhatsApp", icon: "MessageSquare", urlPrefix: "https://wa.me/", inputType: "phone", placeholder: "1234567890" },
+    { id: "twitter", name: "X (Twitter)", icon: "Twitter", urlPrefix: "https://twitter.com/", inputType: "username", placeholder: "username" },
+    { id: "facebook", name: "Facebook", icon: "Facebook", urlPrefix: "https://facebook.com/", inputType: "username", placeholder: "username" },
+    { id: "email", name: "Email", icon: "Mail", urlPrefix: "mailto:", inputType: "email", placeholder: "your@email.com" },
+    { id: "payment", name: "Payment", icon: "CreditCard", urlPrefix: "https://paypal.me/", inputType: "username", placeholder: "username" },
 ]
 
 interface Social {
@@ -34,6 +34,7 @@ interface Social {
     url: string
     label: string
     isActive?: boolean
+    platformId?: string // Track which platform this is for
 }
 
 interface ManageSocialsDialogProps {
@@ -52,7 +53,7 @@ export function ManageSocialsDialog({
     const [currentSocials, setCurrentSocials] = useState<Social[]>(socials)
     const [view, setView] = useState<"list" | "add" | "edit">("list")
     const [editingIndex, setEditingIndex] = useState<number | null>(null)
-    const [editUrl, setEditUrl] = useState("")
+    const [editValue, setEditValue] = useState("") // Username or full URL depending on platform
     const [searchTerm, setSearchTerm] = useState("")
 
     // Sync with props when dialog opens
@@ -70,23 +71,37 @@ export function ManageSocialsDialog({
             label: platform.name,
             url: "",
             isActive: true,
+            platformId: platform.id,
         }
         setCurrentSocials([...currentSocials, newSocial])
         setEditingIndex(currentSocials.length)
-        setEditUrl("")
+        setEditValue("")
         setView("edit")
     }
 
     const handleEditSocial = (index: number) => {
         setEditingIndex(index)
-        setEditUrl(currentSocials[index].url)
+        const social = currentSocials[index]
+        const platform = SOCIAL_PLATFORMS.find(p => p.id === social.platformId || p.icon === social.icon)
+        // Extract username from URL if it has a prefix
+        if (platform?.urlPrefix && social.url.startsWith(platform.urlPrefix)) {
+            setEditValue(social.url.replace(platform.urlPrefix, ""))
+        } else {
+            setEditValue(social.url)
+        }
         setView("edit")
     }
 
     const handleSaveEdit = () => {
         if (editingIndex !== null) {
+            const social = currentSocials[editingIndex]
+            const platform = SOCIAL_PLATFORMS.find(p => p.id === social.platformId || p.icon === social.icon)
+            // Build full URL from prefix + value
+            const fullUrl = platform?.urlPrefix && platform.inputType !== "url"
+                ? platform.urlPrefix + editValue
+                : editValue
             const updated = [...currentSocials]
-            updated[editingIndex] = { ...updated[editingIndex], url: editUrl }
+            updated[editingIndex] = { ...updated[editingIndex], url: fullUrl }
             setCurrentSocials(updated)
             setView("list")
             setEditingIndex(null)
@@ -240,15 +255,28 @@ export function ManageSocialsDialog({
                         </DialogHeader>
 
                         <div className="space-y-4 mt-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="social-url">URL</Label>
-                                <Input
-                                    id="social-url"
-                                    placeholder={SOCIAL_PLATFORMS.find(p => p.icon === currentSocials[editingIndex]?.icon)?.placeholder || "https://..."}
-                                    value={editUrl}
-                                    onChange={(e) => setEditUrl(e.target.value)}
-                                />
-                            </div>
+                            {(() => {
+                                const social = currentSocials[editingIndex]
+                                const platform = SOCIAL_PLATFORMS.find(p => p.id === social?.platformId || p.icon === social?.icon)
+                                const labelText = platform?.inputType === "username" ? "Username"
+                                    : platform?.inputType === "email" ? "Email"
+                                        : platform?.inputType === "phone" ? "Phone Number"
+                                            : "URL"
+                                return (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="social-input">{labelText}</Label>
+                                        {platform?.urlPrefix && platform.inputType !== "url" && (
+                                            <p className="text-xs text-muted-foreground">{platform.urlPrefix}</p>
+                                        )}
+                                        <Input
+                                            id="social-input"
+                                            placeholder={platform?.placeholder || "..."}
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                        />
+                                    </div>
+                                )
+                            })()}
 
                             <div className="flex gap-3">
                                 <Button onClick={handleSaveEdit} className="flex-1">
