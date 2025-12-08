@@ -13,11 +13,17 @@ export interface Link {
 }
 
 export interface ProfileData {
+  username: string
   name: string
   bio: string
   imageUrl: string
   imageObjectFit?: string
   imageCrop?: { x: number; y: number; zoom: number }
+  // Hero section fields
+  heroHeadline?: string
+  heroSubtitle?: string
+  heroVideoUrl?: string
+  showHero?: boolean
   socials: {
     icon: string
     url: string
@@ -40,6 +46,7 @@ export const groups: Group[] = [
 
 // Mock data
 export const profileData: ProfileData = {
+  username: "alexmorgan",
   name: "Alex Morgan",
   bio: "Designer, Developer & Creator",
   imageUrl: "/diverse-person-portrait.png",

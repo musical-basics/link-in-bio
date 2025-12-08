@@ -30,6 +30,13 @@ model Profile {
   imageObjectFit String?  @default("cover") // How image fills avatar: cover, contain, fill
   imageCrop      Json?    // Crop area and zoom: { x, y, zoom }
   socials        Json?    // Store socials as JSON array
+  
+  // Hero section fields
+  heroHeadline   String   @default("My Story")
+  heroSubtitle   String   @default("Welcome to my musical journey.")
+  heroVideoUrl   String?
+  showHero       Boolean  @default(true)
+  
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   

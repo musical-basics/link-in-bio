@@ -35,11 +35,17 @@ export default async function UserPage({ params }: UserPageProps) {
 
     // Transform profile data to match expected format
     const profileData = {
+        username: username,
         name: user.profile.name,
         bio: user.profile.bio || "",
         imageUrl: user.profile.imageUrl || "/diverse-person-portrait.png",
         imageObjectFit: user.profile.imageObjectFit || "cover",
         imageCrop: user.profile.imageCrop as { x: number; y: number; zoom: number } | undefined,
+        // Hero section fields
+        heroHeadline: user.profile.heroHeadline || "My Story",
+        heroSubtitle: user.profile.heroSubtitle || "Welcome to my musical journey.",
+        heroVideoUrl: user.profile.heroVideoUrl || undefined,
+        showHero: user.profile.showHero !== false,
         socials: user.profile.socials as any[] || [],
     }
 

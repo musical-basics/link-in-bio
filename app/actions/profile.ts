@@ -26,6 +26,11 @@ export async function updateProfile(data: {
     imageObjectFit?: string
     imageCrop?: { x: number; y: number; zoom: number }
     socials?: any
+    // Hero section fields
+    heroHeadline?: string
+    heroSubtitle?: string
+    heroVideoUrl?: string | null
+    showHero?: boolean
 }) {
     try {
         const user = await requireAuth()
@@ -54,6 +59,12 @@ export async function updateProfile(data: {
         // Only include new fields if they're provided (gracefully handle if DB doesn't have them yet)
         if (data.imageObjectFit !== undefined) updateData.imageObjectFit = data.imageObjectFit
         if (data.imageCrop !== undefined) updateData.imageCrop = data.imageCrop
+
+        // Hero section fields
+        if (data.heroHeadline !== undefined) updateData.heroHeadline = data.heroHeadline
+        if (data.heroSubtitle !== undefined) updateData.heroSubtitle = data.heroSubtitle
+        if (data.heroVideoUrl !== undefined) updateData.heroVideoUrl = data.heroVideoUrl
+        if (data.showHero !== undefined) updateData.showHero = data.showHero
 
         const profile = await prisma.profile.update({
             where: { userId: user.id },

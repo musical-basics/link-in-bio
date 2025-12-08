@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { type Link as LinkType, profileData } from "@/lib/data"
+import { type Link as LinkType } from "@/lib/data"
 import { LinkManager } from "@/components/link-manager"
 import { ArrowLeft, User } from "lucide-react"
 import Link from "next/link"
@@ -16,6 +16,8 @@ import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
 import { ManageSocialsDialog } from "@/components/manage-socials-dialog"
 import { AddLinkDialog } from "@/components/add-link-dialog"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
+import { HeroSectionDialog } from "@/components/hero-section-dialog"
+import { Video } from "lucide-react"
 
 interface Group {
     id: string
@@ -38,6 +40,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
     const [isManageSocialsOpen, setIsManageSocialsOpen] = useState(false)
     const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
+    const [isHeroSectionOpen, setIsHeroSectionOpen] = useState(false)
     const [profile, setProfile] = useState<any>(initialProfile)
 
     useEffect(() => {
@@ -184,16 +187,16 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                             <CardContent className="space-y-4">
                                 <div className="flex flex-col items-center text-center">
                                     <Avatar className="mb-3 h-20 w-20 border-2 border-primary/20">
-                                        <AvatarImage src={profile?.imageUrl || profileData.imageUrl || "/placeholder.svg"} alt={profile?.name || profileData.name} />
+                                        <AvatarImage src={profile?.imageUrl || "/placeholder.svg"} alt={profile?.name || "Profile"} />
                                         <AvatarFallback>
-                                            {(profile?.name || profileData.name)
+                                            {(profile?.name || "")
                                                 .split(" ")
                                                 .map((n: string) => n[0])
                                                 .join("")}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <h3 className="font-semibold">{profile?.name || profileData.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{profile?.bio || profileData.bio}</p>
+                                    <h3 className="font-semibold">{profile?.name || "Your Name"}</h3>
+                                    <p className="text-sm text-muted-foreground">{profile?.bio || "Set up your profile"}</p>
                                 </div>
                                 <Button
                                     variant="outline"
@@ -242,6 +245,10 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                 </Button>
                                 <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsManageSocialsOpen(true)}>
                                     Social Icons
+                                </Button>
+                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsHeroSectionOpen(true)}>
+                                    <Video className="mr-2 h-4 w-4" />
+                                    Edit Hero Section
                                 </Button>
                                 <Button className="w-full bg-transparent" variant="outline">
                                     View Analytics
@@ -308,6 +315,21 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                     }
                 }}
             />
+
+            {profile && (
+                <HeroSectionDialog
+                    open={isHeroSectionOpen}
+                    onOpenChange={setIsHeroSectionOpen}
+                    initialData={{
+                        heroHeadline: profile.heroHeadline,
+                        heroSubtitle: profile.heroSubtitle,
+                        heroVideoUrl: profile.heroVideoUrl,
+                        showHero: profile.showHero,
+                    }}
+                    onSuccess={fetchProfile}
+                    userId={profile.userId}
+                />
+            )}
         </>
     )
 }

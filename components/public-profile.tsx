@@ -9,7 +9,9 @@ import { Share2, Sparkles } from "lucide-react"
 import { SharePageDialog } from "@/components/share-page-dialog"
 import { ShareLinkDialog } from "@/components/share-link-dialog"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import type { Link as LinkType, ProfileData } from "@/lib/data"
+import { CinematicHeroCard } from "@/components/cinematic-hero-card"
 
 interface Group {
     id: string
@@ -25,9 +27,14 @@ interface PublicProfileProps {
 }
 
 export function PublicProfile({ initialLinks, initialGroups, profileData }: PublicProfileProps) {
+    const router = useRouter()
     const [sharePageOpen, setSharePageOpen] = useState(false)
     const [shareLinkOpen, setShareLinkOpen] = useState(false)
     const [selectedLink, setSelectedLink] = useState<LinkType | null>(null)
+
+    const handleCtaClick = () => {
+        router.push(`/${profileData.username}/story`)
+    }
 
     const handleShareLink = (link: LinkType) => {
         setSelectedLink(link)
@@ -89,6 +96,18 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
                             <SocialIcons socials={profileData.socials.filter(s => s.isActive !== false)} />
                         </div>
                     </div>
+
+                    {/* Hero Section */}
+                    {profileData.showHero && (
+                        <div className="mb-6">
+                            <CinematicHeroCard
+                                headline={profileData.heroHeadline || "My Story"}
+                                subtitle={profileData.heroSubtitle || "Welcome to my musical journey."}
+                                videoUrl={profileData.heroVideoUrl || undefined}
+                                onCtaClick={handleCtaClick}
+                            />
+                        </div>
+                    )}
 
                     {/* Links */}
                     <div className="space-y-6">
