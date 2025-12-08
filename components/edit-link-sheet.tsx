@@ -136,13 +136,13 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
             />
           </div>
 
-          {/* Icon Picker */}
+          {/* Thumbnail / Icon Picker */}
           <div className="space-y-2">
-            <Label>Icon</Label>
-            <Tabs defaultValue="lucide" className="w-full">
+            <Label>Thumbnail</Label>
+            <Tabs defaultValue="custom" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="custom">Upload Image</TabsTrigger>
                 <TabsTrigger value="lucide">Lucide Icons</TabsTrigger>
-                <TabsTrigger value="custom">Custom Image</TabsTrigger>
               </TabsList>
               <TabsContent value="lucide" className="space-y-3">
                 <Input
