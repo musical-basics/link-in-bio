@@ -56,8 +56,8 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
     return (
         <div className="min-h-screen bg-black">
             {/* Grey card container like Linktree */}
-            <div className="mx-auto max-w-lg px-4 py-8">
-                <div className="rounded-3xl bg-neutral-900 px-6 py-8">
+            <div className="mx-auto max-w-xl px-2 sm:px-4 py-4 sm:py-8">
+                <div className="rounded-2xl sm:rounded-3xl bg-neutral-900 px-4 sm:px-6 py-6 sm:py-8">
                     {/* Top icons */}
                     <div className="mb-6 flex justify-between items-center">
                         <Button variant="ghost" size="icon" className="rounded-full bg-neutral-800 text-white hover:bg-neutral-700">
