@@ -68,14 +68,50 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
     onOpenChange(open)
   }
 
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress and resize image to avoid Vercel payload limits
+  const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let { width, height } = img
+
+          // Scale down if needed
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height)
+            width = Math.round(width * ratio)
+            height = Math.round(height * ratio)
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')!
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // Convert to JPEG for better compression
+          const compressed = canvas.toDataURL('image/jpeg', quality)
+          resolve(compressed)
+        }
+        img.onerror = reject
+        img.src = e.target?.result as string
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setThumbnail(reader.result as string)
+      try {
+        // Compress image to avoid payload size issues
+        const compressed = await compressImage(file)
+        setThumbnail(compressed)
+      } catch (error) {
+        console.error('Failed to compress image:', error)
       }
-      reader.readAsDataURL(file)
     }
   }
 
