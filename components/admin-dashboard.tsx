@@ -11,8 +11,9 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { updateLink, createLink, deleteLink, getLinks } from "@/app/actions/links"
 import { getGroups, reorderGroups } from "@/app/actions/groups"
-import { getProfile } from "@/app/actions/profile"
+import { getProfile, updateProfile } from "@/app/actions/profile"
 import { ManageGroupsDialog } from "@/components/manage-groups-dialog"
+import { ManageSocialsDialog } from "@/components/manage-socials-dialog"
 import { AddLinkDialog } from "@/components/add-link-dialog"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 
@@ -34,6 +35,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
     const [links, setLinks] = useState<LinkType[]>(initialLinks)
     const [groups, setGroups] = useState<Group[]>(initialGroups)
     const [isManageGroupsOpen, setIsManageGroupsOpen] = useState(false)
+    const [isManageSocialsOpen, setIsManageSocialsOpen] = useState(false)
     const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
     const [profile, setProfile] = useState<any>(initialProfile)
@@ -238,6 +240,9 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                 <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsManageGroupsOpen(true)}>
                                     Manage Groups
                                 </Button>
+                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsManageSocialsOpen(true)}>
+                                    Social Icons
+                                </Button>
                                 <Button className="w-full bg-transparent" variant="outline">
                                     View Analytics
                                 </Button>
@@ -291,6 +296,18 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                     onSuccess={fetchProfile}
                 />
             )}
+
+            <ManageSocialsDialog
+                open={isManageSocialsOpen}
+                onOpenChange={setIsManageSocialsOpen}
+                socials={(profile?.socials as any[]) || []}
+                onSave={async (socials) => {
+                    const result = await updateProfile({ socials })
+                    if (result.success) {
+                        fetchProfile()
+                    }
+                }}
+            />
         </>
     )
 }

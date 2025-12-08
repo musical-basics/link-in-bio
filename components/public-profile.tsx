@@ -80,7 +80,7 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
                     <h1 className="mb-2 text-2xl font-bold text-foreground">{profileData.name}</h1>
                     <p className="text-balance text-muted-foreground">{profileData.bio}</p>
                     <div className="mt-4">
-                        <SocialIcons socials={profileData.socials} />
+                        <SocialIcons socials={profileData.socials.filter(s => s.isActive !== false)} />
                     </div>
                 </div>
 

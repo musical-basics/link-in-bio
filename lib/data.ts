@@ -20,6 +20,7 @@ export interface ProfileData {
     icon: string
     url: string
     label: string
+    isActive?: boolean
   }[]
 }
 
