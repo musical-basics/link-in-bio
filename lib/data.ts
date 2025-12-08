@@ -7,6 +7,7 @@ export interface Link {
   group: string
   clicks: number
   order: number
+  isActive: boolean
 }
 
 export interface ProfileData {
@@ -56,6 +57,7 @@ export const linksData: Link[] = [
     group: "Work",
     clicks: 0,
     order: 1,
+    isActive: true,
   },
   {
     id: "2",
@@ -66,6 +68,7 @@ export const linksData: Link[] = [
     group: "Work",
     clicks: 0,
     order: 2,
+    isActive: true,
   },
   {
     id: "3",
@@ -76,6 +79,7 @@ export const linksData: Link[] = [
     group: "Socials",
     clicks: 0,
     order: 3,
+    isActive: true,
   },
   {
     id: "4",
@@ -86,6 +90,7 @@ export const linksData: Link[] = [
     group: "Socials",
     clicks: 0,
     order: 4,
+    isActive: true,
   },
   {
     id: "5",
@@ -96,6 +101,7 @@ export const linksData: Link[] = [
     group: "Socials",
     clicks: 0,
     order: 5,
+    isActive: true,
   },
   {
     id: "6",
@@ -106,6 +112,7 @@ export const linksData: Link[] = [
     group: "Music",
     clicks: 0,
     order: 6,
+    isActive: true,
   },
   {
     id: "7",
@@ -116,5 +123,6 @@ export const linksData: Link[] = [
     group: "Music",
     clicks: 0,
     order: 7,
+    isActive: true,
   },
 ]

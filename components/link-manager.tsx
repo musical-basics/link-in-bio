@@ -29,6 +29,7 @@ interface LinkManagerProps {
   setLinks: (links: LinkType[]) => void
   onUpdateLink?: (link: LinkType) => void
   onDeleteLink?: (link: LinkType) => void
+  onToggleActive?: (link: LinkType, isActive: boolean) => void
   availableGroups: string[]
   groups: Group[]
   onReorderGroups?: (groupNames: string[]) => void
@@ -78,7 +79,7 @@ function SortableGroupHeader({
   )
 }
 
-export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, availableGroups, groups, onReorderGroups }: LinkManagerProps) {
+export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, onToggleActive, availableGroups, groups, onReorderGroups }: LinkManagerProps) {
   const [editingLink, setEditingLink] = useState<LinkType | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
 
@@ -218,6 +219,7 @@ export function LinkManager({ links, setLinks, onUpdateLink, onDeleteLink, avail
                         link={link}
                         onEdit={handleEditLink}
                         onDelete={onDeleteLink}
+                        onToggleActive={onToggleActive}
                         sortableId={`link:${link.id}`}
                       />
                     ))}

@@ -34,8 +34,9 @@ export function PublicProfile({ initialLinks, initialGroups, profileData }: Publ
         setShareLinkOpen(true)
     }
 
-    // Group links by category
-    const groupedLinks = initialLinks.reduce(
+    // Filter active links and group by category
+    const activeLinks = initialLinks.filter(link => link.isActive !== false)
+    const groupedLinks = activeLinks.reduce(
         (acc, link) => {
             if (!acc[link.group]) {
                 acc[link.group] = []

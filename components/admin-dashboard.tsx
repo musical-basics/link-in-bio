@@ -107,6 +107,20 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
         }
     }
 
+    const handleToggleActive = async (link: LinkType, isActive: boolean) => {
+        const updatedLink = { ...link, isActive }
+        // Optimistic update - use functional update
+        setLinks(prevLinks => prevLinks.map(l => l.id === link.id ? updatedLink : l))
+
+        // Server update
+        const result = await updateLink(link.id, { isActive })
+        if (!result.success) {
+            console.error("Failed to toggle link visibility")
+            // Revert
+            setLinks(prevLinks => prevLinks.map(l => l.id === link.id ? link : l))
+        }
+    }
+
     const handleUpdateGroups = async (updatedLinks: LinkType[]) => {
         // Find changed links and update them on server
         for (const updatedLink of updatedLinks) {
@@ -239,7 +253,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                 <CardDescription>Drag and drop to reorder links. Click on a link to edit.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} onReorderGroups={handleReorderGroups} />
+                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} onToggleActive={handleToggleActive} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} onReorderGroups={handleReorderGroups} />
                             </CardContent>
                         </Card>
                     </div>
