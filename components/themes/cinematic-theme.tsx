@@ -175,6 +175,46 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                     {links.map((link) => {
                                         const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
 
+                                        // Featured layout - large image on top with title bar below
+                                        if (link.layout === "featured") {
+                                            return (
+                                                <a
+                                                    key={link.id}
+                                                    href={link.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="group block relative overflow-hidden rounded-2xl bg-zinc-900/30 backdrop-blur-xl border border-white/[0.08] transition-all duration-300 hover:bg-zinc-800/40 hover:border-white/[0.12] hover:scale-[1.01]"
+                                                >
+                                                    {/* Hero Image */}
+                                                    {link.thumbnail ? (
+                                                        <div className="w-full aspect-video overflow-hidden">
+                                                            <img
+                                                                src={link.thumbnail}
+                                                                alt={link.title}
+                                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-full aspect-video bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 flex items-center justify-center">
+                                                            <IconComponent className="h-16 w-16 text-zinc-600" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Title Bar */}
+                                                    <div className="px-5 py-4 flex items-center justify-between border-t border-white/[0.05]">
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-white font-medium truncate">{link.title}</h4>
+                                                            {link.subtitle && (
+                                                                <p className="text-zinc-500 text-sm mt-0.5 truncate">{link.subtitle}</p>
+                                                            )}
+                                                        </div>
+                                                        <ArrowRight className="h-4 w-4 shrink-0 ml-3 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all duration-200" />
+                                                    </div>
+                                                </a>
+                                            )
+                                        }
+
+                                        // Classic layout - thumbnail/icon on left
                                         return (
                                             <a
                                                 key={link.id}
