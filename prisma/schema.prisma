@@ -30,6 +30,7 @@ model Profile {
   imageObjectFit String?  @default("cover") // How image fills avatar: cover, contain, fill
   imageCrop      Json?    // Crop area and zoom: { x, y, zoom }
   socials        Json?    // Store socials as JSON array
+  theme          String   @default("classic")  // "classic" or "cinematic"
   
   // Hero section fields
   heroHeadline   String   @default("My Story")

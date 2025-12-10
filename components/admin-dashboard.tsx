@@ -17,7 +17,8 @@ import { ManageSocialsDialog } from "@/components/manage-socials-dialog"
 import { AddLinkDialog } from "@/components/add-link-dialog"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 import { HeroSectionDialog } from "@/components/hero-section-dialog"
-import { Video } from "lucide-react"
+import { ThemeSelector } from "@/components/theme-selector"
+import { Video, Palette } from "lucide-react"
 
 interface Group {
     id: string
@@ -41,6 +42,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
     const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
     const [isHeroSectionOpen, setIsHeroSectionOpen] = useState(false)
+    const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false)
     const [profile, setProfile] = useState<any>(initialProfile)
 
     useEffect(() => {
@@ -250,6 +252,10 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                     <Video className="mr-2 h-4 w-4" />
                                     Edit Hero Section
                                 </Button>
+                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsThemeSelectorOpen(true)}>
+                                    <Palette className="mr-2 h-4 w-4" />
+                                    Change Theme
+                                </Button>
                                 <Button className="w-full bg-transparent" variant="outline">
                                     View Analytics
                                 </Button>
@@ -330,6 +336,13 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                     userId={profile.userId}
                 />
             )}
+
+            <ThemeSelector
+                open={isThemeSelectorOpen}
+                onOpenChange={setIsThemeSelectorOpen}
+                currentTheme={profile?.theme || "classic"}
+                onSuccess={fetchProfile}
+            />
         </>
     )
 }

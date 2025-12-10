@@ -24,6 +24,7 @@ export interface ProfileData {
   heroSubtitle?: string
   heroVideoUrl?: string
   showHero?: boolean
+  theme?: "classic" | "cinematic"
   socials: {
     icon: string
     url: string

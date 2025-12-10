@@ -46,6 +46,8 @@ export default async function UserPage({ params }: UserPageProps) {
         heroSubtitle: user.profile.heroSubtitle || "Welcome to my musical journey.",
         heroVideoUrl: user.profile.heroVideoUrl || undefined,
         showHero: user.profile.showHero !== false,
+        // Theme
+        theme: (user.profile.theme || "classic") as "classic" | "cinematic",
         socials: user.profile.socials as any[] || [],
     }
 

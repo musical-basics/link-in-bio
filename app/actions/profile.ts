@@ -31,6 +31,8 @@ export async function updateProfile(data: {
     heroSubtitle?: string
     heroVideoUrl?: string | null
     showHero?: boolean
+    // Theme
+    theme?: "classic" | "cinematic"
 }) {
     try {
         const user = await requireAuth()
@@ -65,6 +67,9 @@ export async function updateProfile(data: {
         if (data.heroSubtitle !== undefined) updateData.heroSubtitle = data.heroSubtitle
         if (data.heroVideoUrl !== undefined) updateData.heroVideoUrl = data.heroVideoUrl
         if (data.showHero !== undefined) updateData.showHero = data.showHero
+
+        // Theme field
+        if (data.theme !== undefined) updateData.theme = data.theme
 
         const profile = await prisma.profile.update({
             where: { userId: user.id },
