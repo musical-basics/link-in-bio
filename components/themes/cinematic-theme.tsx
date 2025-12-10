@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { SocialIcons } from "@/components/social-icons"
 import { Share2, ArrowRight } from "lucide-react"
+import * as LucideIcons from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { SharePageDialog } from "@/components/share-page-dialog"
 import { ShareLinkDialog } from "@/components/share-link-dialog"
 import { useState } from "react"
@@ -170,27 +172,43 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
 
                                 {/* Links Grid */}
                                 <div className="space-y-3">
-                                    {links.map((link) => (
-                                        <a
-                                            key={link.id}
-                                            href={link.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="group block relative overflow-hidden rounded-xl bg-zinc-900/30 backdrop-blur-xl border border-white/[0.08] p-4 transition-all duration-300 hover:bg-zinc-800/40 hover:border-white/[0.12] hover:scale-[1.02]"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <h4 className="text-white font-medium group-hover:text-white/90 transition-colors">
+                                    {links.map((link) => {
+                                        const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
+
+                                        return (
+                                            <a
+                                                key={link.id}
+                                                href={link.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="group flex items-center gap-4 relative overflow-hidden rounded-xl bg-zinc-900/30 backdrop-blur-xl border border-white/[0.08] p-4 transition-all duration-300 hover:bg-zinc-800/40 hover:border-white/[0.12] hover:scale-[1.02]"
+                                            >
+                                                {/* Thumbnail or Icon */}
+                                                {link.thumbnail ? (
+                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden border border-white/10">
+                                                        <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-zinc-400 group-hover:text-white transition-colors">
+                                                        <IconComponent className="h-5 w-5" />
+                                                    </div>
+                                                )}
+
+                                                {/* Text content */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-white font-medium group-hover:text-white/90 transition-colors truncate">
                                                         {link.title}
                                                     </h4>
                                                     {link.subtitle && (
-                                                        <p className="text-zinc-500 text-sm mt-0.5">{link.subtitle}</p>
+                                                        <p className="text-zinc-500 text-sm mt-0.5 truncate">{link.subtitle}</p>
                                                     )}
                                                 </div>
-                                                <ArrowRight className="h-4 w-4 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all duration-200" />
-                                            </div>
-                                        </a>
-                                    ))}
+
+                                                {/* Arrow */}
+                                                <ArrowRight className="h-4 w-4 shrink-0 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all duration-200" />
+                                            </a>
+                                        )
+                                    })}
                                 </div>
                             </div>
                         )
