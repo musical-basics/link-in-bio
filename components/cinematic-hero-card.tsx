@@ -120,7 +120,7 @@ export function CinematicHeroCard({
                 <motion.div
                     className="absolute inset-0 bg-radial opacity-0 pointer-events-none"
                     style={{
-                        background: `radial-gradient(circle at ${mousePosition.current.x * 100}% ${mousePosition.current.y * 100}%, rgba(217, 119, 6, 0.1) 0%, rgba(0, 0, 0, 0) 70%)`,
+                        background: `radial-gradient(circle at ${mousePosition.current.x * 100}% ${mousePosition.current.y * 100}%, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0) 70%)`,
                     }}
                     animate={{
                         opacity: 0.3,
@@ -130,22 +130,8 @@ export function CinematicHeroCard({
                     }}
                 />
 
-                {/* Pulsing border effect */}
-                <motion.div
-                    className="absolute inset-0 rounded-xl border border-amber-700/40"
-                    animate={{
-                        boxShadow: [
-                            "0 0 20px rgba(217, 119, 6, 0.1)",
-                            "0 0 40px rgba(217, 119, 6, 0.2)",
-                            "0 0 20px rgba(217, 119, 6, 0.1)",
-                        ],
-                    }}
-                    transition={{
-                        duration: 3,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: "easeInOut",
-                    }}
-                />
+                {/* Subtle border effect */}
+                <div className="absolute inset-0 rounded-xl border border-white/10" />
 
                 {/* Gradient overlay for depth */}
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent" />
@@ -182,12 +168,12 @@ export function CinematicHeroCard({
                         onClick={onCtaClick}
                         className="group relative mt-2 px-8 py-3 rounded-full text-sm font-medium text-white overflow-hidden"
                     >
-                        {/* Gradient background */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500" />
+                        {/* Gradient background - grey/white */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-zinc-600 via-zinc-500 to-zinc-400" />
 
                         {/* Shimmer effect on hover */}
                         <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
                             whileHover={{ translateX: "100%" }}
                             transition={{ duration: 0.6 }}
                         />
