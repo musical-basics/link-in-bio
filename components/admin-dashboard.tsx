@@ -165,127 +165,129 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                     {/* Header */}
                     <div className="mb-8 flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-                            <p className="text-muted-foreground">Manage your links and profile</p>
+                            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                            <p className="text-muted-foreground">Manage your Link in Bio</p>
                         </div>
                         <Link href={`/u/${username}`}>
                             <Button variant="outline">
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Public View
+                                View Public Page
                             </Button>
                         </Link>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-3">
-                        {/* Profile Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
-                                    Profile
-                                </CardTitle>
-                                <CardDescription>Your public profile information</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex flex-col items-center text-center">
-                                    <Avatar className="mb-3 h-20 w-20 border-2 border-primary/20">
-                                        <AvatarImage src={profile?.imageUrl || "/placeholder.svg"} alt={profile?.name || "Profile"} />
-                                        <AvatarFallback>
-                                            {(profile?.name || "")
-                                                .split(" ")
-                                                .map((n: string) => n[0])
-                                                .join("")}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <h3 className="font-semibold">{profile?.name || "Your Name"}</h3>
-                                    <p className="text-sm text-muted-foreground">{profile?.bio || "Set up your profile"}</p>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    className="w-full bg-transparent"
-                                    onClick={() => setIsEditProfileOpen(true)}
-                                >
-                                    Edit Profile
-                                </Button>
-                            </CardContent>
-                        </Card>
+                    <div className="flex gap-6">
+                        {/* Left Sidebar */}
+                        <div className="w-64 shrink-0 space-y-6">
+                            {/* Profile Card */}
+                            <Card className="border-0 bg-zinc-900/50">
+                                <CardContent className="pt-6">
+                                    <div className="flex flex-col items-center text-center">
+                                        <Avatar className="mb-3 h-20 w-20 border-2 border-primary/20">
+                                            <AvatarImage src={profile?.imageUrl || "/placeholder.svg"} alt={profile?.name || "Profile"} />
+                                            <AvatarFallback>
+                                                {(profile?.name || "")
+                                                    .split(" ")
+                                                    .map((n: string) => n[0])
+                                                    .join("")}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <h3 className="font-semibold text-white">{profile?.name || "Your Name"}</h3>
+                                        <p className="text-sm text-muted-foreground">{profile?.bio || "Set up your profile"}</p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-3"
+                                            onClick={() => setIsEditProfileOpen(true)}
+                                        >
+                                            Edit Profile
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                        {/* Stats Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Analytics</CardTitle>
-                                <CardDescription>Overview of your link performance</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Total Links</span>
-                                    <Badge variant="secondary">{links.length}</Badge>
+                            {/* Navigation */}
+                            <div className="space-y-4">
+                                {/* CONTENT Section */}
+                                <div>
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content</p>
+                                    <div className="space-y-1">
+                                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsAddLinkOpen(true)}>
+                                            <span className="mr-2">+</span> Add New Link
+                                        </Button>
+                                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsManageGroupsOpen(true)}>
+                                            <span className="mr-2">📁</span> Manage Groups
+                                        </Button>
+                                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsManageSocialsOpen(true)}>
+                                            <span className="mr-2">🔗</span> Social Icons
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Total Clicks</span>
-                                    <Badge variant="secondary">{links.reduce((sum, link) => sum + link.clicks, 0)}</Badge>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Groups</span>
-                                    <Badge variant="secondary">{new Set(links.map((l) => l.group)).size}</Badge>
-                                </div>
-                            </CardContent>
-                        </Card>
 
-                        {/* Quick Actions Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Quick Actions</CardTitle>
-                                <CardDescription>Manage your Link in Bio</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsAddLinkOpen(true)}>
-                                    Add New Link
-                                </Button>
-                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsManageGroupsOpen(true)}>
-                                    Manage Groups
-                                </Button>
-                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsManageSocialsOpen(true)}>
-                                    Social Icons
-                                </Button>
-                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsHeroSectionOpen(true)}>
-                                    <Video className="mr-2 h-4 w-4" />
-                                    Edit Hero Section
-                                </Button>
-                                <Link href="/admin/timeline-builder">
-                                    <Button className="w-full bg-transparent" variant="outline">
-                                        <ListMusic className="mr-2 h-4 w-4" />
-                                        Timeline Builder
+                                {/* PAGES Section */}
+                                <div>
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pages</p>
+                                    <div className="space-y-1">
+                                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsHeroSectionOpen(true)}>
+                                            <Video className="mr-2 h-4 w-4" /> Edit Hero Section
+                                        </Button>
+                                        <Link href="/admin/timeline-builder" className="w-full">
+                                            <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white">
+                                                <ListMusic className="mr-2 h-4 w-4" /> Timeline Builder
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+
+                                {/* SETTINGS Section */}
+                                <div>
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Settings</p>
+                                    <div className="space-y-1">
+                                        <Link href="/admin/analytics" className="w-full">
+                                            <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white">
+                                                <BarChart3 className="mr-2 h-4 w-4" /> View Analytics
+                                            </Button>
+                                        </Link>
+                                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsThemeSelectorOpen(true)}>
+                                            <Palette className="mr-2 h-4 w-4" /> Change Theme
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <Card className="border-0 bg-zinc-900/50">
+                                <CardContent className="pt-4">
+                                    <div className="grid grid-cols-2 gap-4 text-center">
+                                        <div>
+                                            <p className="text-2xl font-bold text-white">{links.length}</p>
+                                            <p className="text-xs text-muted-foreground">Links</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-2xl font-bold text-white">{new Set(links.map((l) => l.group)).size}</p>
+                                            <p className="text-xs text-muted-foreground">Groups</p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Main Content - Link Manager */}
+                        <div className="flex-1">
+                            <Card className="border-0 bg-zinc-900/50">
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle>Link Manager</CardTitle>
+                                        <CardDescription>Drag and drop to reorder. Click to edit.</CardDescription>
+                                    </div>
+                                    <Button onClick={() => setIsAddLinkOpen(true)}>
+                                        <span className="mr-2">+</span> Add Link
                                     </Button>
-                                </Link>
-                                <Link href="/admin/analytics">
-                                    <Button className="w-full bg-transparent" variant="outline">
-                                        <BarChart3 className="mr-2 h-4 w-4" />
-                                        View Analytics
-                                    </Button>
-                                </Link>
-                                <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsThemeSelectorOpen(true)}>
-                                    <Palette className="mr-2 h-4 w-4" />
-                                    Change Theme
-                                </Button>
-                                <Button className="w-full bg-transparent" variant="outline">
-                                    View Analytics
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Link Manager */}
-                    <div className="mt-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Link Manager</CardTitle>
-                                <CardDescription>Drag and drop to reorder links. Click on a link to edit.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} onToggleActive={handleToggleActive} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} onReorderGroups={handleReorderGroups} />
-                            </CardContent>
-                        </Card>
+                                </CardHeader>
+                                <CardContent>
+                                    <LinkManager links={links} setLinks={setLinks} onUpdateLink={handleUpdateLink} onDeleteLink={handleDeleteLink} onToggleActive={handleToggleActive} availableGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]} groups={groups} onReorderGroups={handleReorderGroups} />
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
             </div >
