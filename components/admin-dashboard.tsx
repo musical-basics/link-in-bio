@@ -18,7 +18,7 @@ import { AddLinkDialog } from "@/components/add-link-dialog"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 import { HeroSectionDialog } from "@/components/hero-section-dialog"
 import { ThemeSelector } from "@/components/theme-selector"
-import { Video, Palette } from "lucide-react"
+import { Video, Palette, ListMusic, BarChart3 } from "lucide-react"
 
 interface Group {
     id: string
@@ -252,6 +252,18 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                     <Video className="mr-2 h-4 w-4" />
                                     Edit Hero Section
                                 </Button>
+                                <Link href="/admin/timeline-builder">
+                                    <Button className="w-full bg-transparent" variant="outline">
+                                        <ListMusic className="mr-2 h-4 w-4" />
+                                        Timeline Builder
+                                    </Button>
+                                </Link>
+                                <Link href="/admin/analytics">
+                                    <Button className="w-full bg-transparent" variant="outline">
+                                        <BarChart3 className="mr-2 h-4 w-4" />
+                                        View Analytics
+                                    </Button>
+                                </Link>
                                 <Button className="w-full bg-transparent" variant="outline" onClick={() => setIsThemeSelectorOpen(true)}>
                                     <Palette className="mr-2 h-4 w-4" />
                                     Change Theme
@@ -276,7 +288,7 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                         </Card>
                     </div>
                 </div>
-            </div>
+            </div >
 
             <ManageGroupsDialog
                 open={isManageGroupsOpen}
@@ -295,20 +307,22 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                 existingGroups={[...new Set([...groups.map(g => g.name), ...links.map(l => l.group)])]}
             />
 
-            {profile && (
-                <EditProfileDialog
-                    open={isEditProfileOpen}
-                    onOpenChange={setIsEditProfileOpen}
-                    initialData={{
-                        name: profile.name,
-                        bio: profile.bio,
-                        imageUrl: profile.imageUrl,
-                        imageObjectFit: profile.imageObjectFit,
-                        imageCrop: profile.imageCrop,
-                    }}
-                    onSuccess={fetchProfile}
-                />
-            )}
+            {
+                profile && (
+                    <EditProfileDialog
+                        open={isEditProfileOpen}
+                        onOpenChange={setIsEditProfileOpen}
+                        initialData={{
+                            name: profile.name,
+                            bio: profile.bio,
+                            imageUrl: profile.imageUrl,
+                            imageObjectFit: profile.imageObjectFit,
+                            imageCrop: profile.imageCrop,
+                        }}
+                        onSuccess={fetchProfile}
+                    />
+                )
+            }
 
             <ManageSocialsDialog
                 open={isManageSocialsOpen}
@@ -322,20 +336,22 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                 }}
             />
 
-            {profile && (
-                <HeroSectionDialog
-                    open={isHeroSectionOpen}
-                    onOpenChange={setIsHeroSectionOpen}
-                    initialData={{
-                        heroHeadline: profile.heroHeadline,
-                        heroSubtitle: profile.heroSubtitle,
-                        heroVideoUrl: profile.heroVideoUrl,
-                        showHero: profile.showHero,
-                    }}
-                    onSuccess={fetchProfile}
-                    userId={profile.userId}
-                />
-            )}
+            {
+                profile && (
+                    <HeroSectionDialog
+                        open={isHeroSectionOpen}
+                        onOpenChange={setIsHeroSectionOpen}
+                        initialData={{
+                            heroHeadline: profile.heroHeadline,
+                            heroSubtitle: profile.heroSubtitle,
+                            heroVideoUrl: profile.heroVideoUrl,
+                            showHero: profile.showHero,
+                        }}
+                        onSuccess={fetchProfile}
+                        userId={profile.userId}
+                    />
+                )
+            }
 
             <ThemeSelector
                 open={isThemeSelectorOpen}

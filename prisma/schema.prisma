@@ -18,7 +18,25 @@ model User {
   
   profile   Profile?
   links     Link[]
+
   groups    Group[]
+  timelineEvents TimelineEvent[] // Relation to timeline events
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  year        Int
+  mediaUrl    String?
+  mediaType   String   @default("image") // "image" or "video"
+  order       Int      @default(0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Profile {

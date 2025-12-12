@@ -13,11 +13,22 @@ interface LinkButtonProps {
   onShare?: (link: LinkType) => void
 }
 
+import { usePostHog } from 'posthog-js/react'
+
 export function LinkButton({ link, onShare }: LinkButtonProps) {
+  const posthog = usePostHog()
   const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
 
+  const handleLinkClick = () => {
+    posthog.capture('link_clicked', {
+      link_id: link.id,
+      link_url: link.url,
+      link_title: link.title,
+      section: 'list'
+    })
+  }
+
   const handleShareClick = (e: React.MouseEvent) => {
-    e.preventDefault()
     e.stopPropagation()
     onShare?.(link)
   }
@@ -31,6 +42,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
           target="_blank"
           rel="noopener noreferrer"
           data-link-id={link.id}
+          onClick={handleLinkClick}
           className="group block w-full rounded-xl overflow-hidden bg-neutral-800 transition-all hover:scale-[1.01]"
         >
           {link.thumbnail ? (
@@ -66,6 +78,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
         target="_blank"
         rel="noopener noreferrer"
         data-link-id={link.id}
+        onClick={handleLinkClick}
         className="group flex w-full items-center gap-3 rounded-lg bg-neutral-800 pl-2 pr-3 py-2 transition-all hover:scale-[1.01] hover:bg-neutral-700"
       >
         {link.thumbnail ? (

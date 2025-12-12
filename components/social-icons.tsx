@@ -11,7 +11,13 @@ interface SocialIconsProps {
   }[]
 }
 
+import { usePostHog } from 'posthog-js/react'
+
+// ...
+
 export function SocialIcons({ socials }: SocialIconsProps) {
+  const posthog = usePostHog()
+
   return (
     <div className="flex items-center justify-center gap-4">
       {socials.map((social) => {
@@ -24,6 +30,14 @@ export function SocialIcons({ socials }: SocialIconsProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={social.label}
+            onClick={() => {
+              posthog.capture('link_clicked', {
+                link_id: 'social',
+                link_url: social.url,
+                link_title: social.label,
+                section: 'header' // or 'hero' depending on placement, but 'header' implies top/socials
+              })
+            }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-card text-foreground transition-all hover:scale-110 hover:bg-primary hover:text-primary-foreground"
           >
             <IconComponent className="h-5 w-5" />
