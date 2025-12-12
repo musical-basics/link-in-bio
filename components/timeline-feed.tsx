@@ -123,12 +123,15 @@ export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
     offset: ["start 30%", "end 70%"],
   })
 
+  // Sort events chronologically by year
+  const sortedEvents = [...events].sort((a, b) => a.year - b.year)
+
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
   const [activeYear, setActiveYear] = useState<number | null>(null)
   const [activeEventId, setActiveEventId] = useState<string | null>(null)
 
-  // Memoize events by year
-  const eventsByYear = events.reduce(
+  // Memoize events by year using sortedEvents
+  const eventsByYear = sortedEvents.reduce(
     (acc, event) => {
       if (!acc[event.year]) {
         acc[event.year] = []
@@ -138,6 +141,8 @@ export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
     },
     {} as Record<number, PrismaTimelineEvent[]>,
   )
+
+  const sortedYears = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b)
 
   const scrollToElement = (elementId: string) => {
     const element = document.getElementById(elementId)
@@ -184,8 +189,7 @@ export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
             {/* Left Column: Sticky Years Navigation (Desktop Only) */}
             <div className="hidden lg:col-span-2 lg:block">
               <div className="sticky top-20 flex flex-col gap-12">
-                {Object.keys(eventsByYear).map((yearStr) => {
-                  const year = Number.parseInt(yearStr)
+                {sortedYears.map((year) => {
                   const yearEvents = eventsByYear[year]
                   return (
                     <motion.div
@@ -245,7 +249,7 @@ export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
 
             {/* Right Column: Content Cards */}
             <div className="col-span-full space-y-20 lg:col-span-10">
-              {events.map((event, index) => (
+              {sortedEvents.map((event, index) => (
                 <div key={event.id}>
                   {/* Mobile Year Badge */}
                   <div className="mb-4 flex items-center gap-3 lg:hidden">
