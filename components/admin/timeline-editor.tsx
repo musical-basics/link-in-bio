@@ -91,14 +91,20 @@ export function TimelineEditor({ initialEvents }: TimelineEditorProps) {
         setDialogOpen(true)
     }
 
-    // Update local state when initialEvents changes (e.g. after server action revalidation)
-    // This is a simple way to keep them in sync, though optimitic updates handle most cases.
-    // Be careful with this pattern if typing fast, but for reorder/save it's fine.
-    if (JSON.stringify(initialEvents) !== JSON.stringify(events)) {
-        // Only update if IDs/content changed meaningfully, ignoring purely optimistic order if we trust the server
-        // Actually, let's just use key-based reset in the parent or simple effect if needed.
-        // For now, rely on standard props flow.
-    }
+    // Sort events by year (chronologically)
+    const sortedEvents = [...events].sort((a, b) => a.year - b.year)
+
+    // Group events by year
+    const eventsByYear = sortedEvents.reduce((acc, event) => {
+        if (!acc[event.year]) {
+            acc[event.year] = []
+        }
+        acc[event.year].push(event)
+        return acc
+    }, {} as Record<number, TimelineEvent[]>)
+
+    // Get sorted years
+    const sortedYears = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b)
 
 
     return (
@@ -124,15 +130,22 @@ export function TimelineEditor({ initialEvents }: TimelineEditorProps) {
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
                     >
-                        <SortableContext items={events.map(e => e.id)} strategy={verticalListSortingStrategy}>
-                            <div className="space-y-3">
-                                {events.map((event) => (
-                                    <EventCard
-                                        key={event.id}
-                                        event={event}
-                                        onEdit={handleEdit}
-                                        onDelete={handleDelete}
-                                    />
+                        <SortableContext items={sortedEvents.map(e => e.id)} strategy={verticalListSortingStrategy}>
+                            <div className="space-y-6">
+                                {sortedYears.map((year) => (
+                                    <div key={year}>
+                                        <h3 className="text-lg font-semibold text-zinc-400 mb-3">{year}</h3>
+                                        <div className="space-y-3">
+                                            {eventsByYear[year].map((event) => (
+                                                <EventCard
+                                                    key={event.id}
+                                                    event={event}
+                                                    onEdit={handleEdit}
+                                                    onDelete={handleDelete}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </SortableContext>
