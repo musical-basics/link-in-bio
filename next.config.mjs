@@ -15,6 +15,11 @@ const nextConfig = {
         source: '/',
         destination: '/u/lionelyu',
       },
+      // Story page
+      {
+        source: '/:username/story',
+        destination: '/u/:username/story',
+      },
       // /:username maps to /u/:username (excluding reserved paths)
       {
         source: '/:username((?!admin|login|signup|api|_next|u|favicon).*)',
