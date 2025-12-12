@@ -25,7 +25,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isVisible, onActiveChange 
 
   return (
     <motion.div
-      id={event.id}
+      id={`event-${event.id}`}
       className="flex flex-col gap-6 scroll-mt-24"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -145,9 +145,9 @@ export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
   const sortedYears = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b)
 
   const scrollToElement = (elementId: string) => {
-    const element = document.getElementById(elementId)
+    const element = document.getElementById(`event-${elementId}`)
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" })
+      element.scrollIntoView({ behavior: "smooth", block: "start" })
     }
   }
 
