@@ -27,7 +27,7 @@ const EventTracker: React.FC<{
       id={`event-${id}`}
       className="scroll-mt-32" // Increased top margin for better scroll alignment
       onViewportEnter={() => onActiveChange?.(true)}
-      viewport={{ margin: "-50% 0px -50% 0px" }} // Only trigger when element is in the middle 50% of screen
+      viewport={{ margin: "-10% 0px -80% 0px" }} // Trigger when top of element enters top 20% of screen
     >
       {children}
     </motion.div>
