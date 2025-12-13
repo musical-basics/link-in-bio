@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import * as LucideIcons from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Upload, X, ImageIcon, LayoutGrid } from "lucide-react"
+import { BRAND_ICONS } from "@/components/brand-icons"
 
 // Common icons to show in the picker
 const COMMON_ICONS = [
@@ -172,14 +173,19 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
             />
           </div>
 
+
+          // ... existing code ...
+
           {/* Thumbnail / Icon Picker */}
           <div className="space-y-2">
             <Label>Thumbnail</Label>
-            <Tabs defaultValue="custom" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="custom">Upload Image</TabsTrigger>
-                <TabsTrigger value="lucide">Lucide Icons</TabsTrigger>
+            <Tabs defaultValue="brands" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="custom">Upload</TabsTrigger>
+                <TabsTrigger value="lucide">Icons</TabsTrigger>
+                <TabsTrigger value="brands">Brands</TabsTrigger>
               </TabsList>
+
               <TabsContent value="lucide" className="space-y-3">
                 <Input
                   placeholder="Search icons..."
@@ -195,8 +201,11 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
                         <button
                           key={iconName}
                           type="button"
-                          onClick={() => setIcon(iconName)}
-                          className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${icon === iconName
+                          onClick={() => {
+                            setIcon(iconName)
+                            setThumbnail(undefined) // Clear thumbnail when icon is selected if checking logic later prioritizes thumbnail
+                          }}
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-colors ${icon === iconName && !thumbnail?.startsWith("brand:")
                             ? "bg-primary text-primary-foreground border-primary"
                             : "hover:bg-accent"
                             }`}
@@ -212,8 +221,48 @@ export function EditLinkSheet({ link, open, onOpenChange, onSave, availableGroup
                   <span className="text-sm">Selected: {icon}</span>
                 </div>
               </TabsContent>
+
+              <TabsContent value="brands" className="space-y-3">
+                <ScrollArea className="h-64 rounded-md border p-4">
+                  <div className="grid grid-cols-4 gap-4">
+                    {Object.entries(BRAND_ICONS).map(([key, data]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setThumbnail(`brand:${key}`)}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all hover:scale-105 ${thumbnail === `brand:${key}`
+                          ? "border-primary bg-primary/5 ring-1 ring-primary"
+                          : "hover:bg-accent hover:border-accent-foreground/20"
+                          }`}
+                      >
+                        <div className="h-8 w-8 flex items-center justify-center">
+                          <svg
+                            viewBox={data.viewBox}
+                            className="w-full h-full"
+                            style={{ fill: data.color }}
+                          >
+                            <path d={data.path} />
+                          </svg>
+                        </div>
+                        <span className="text-xs font-medium text-center">{data.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+                {thumbnail?.startsWith("brand:") && (
+                  <div className="flex items-center justify-between rounded-lg border p-2 bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Selected: {BRAND_ICONS[thumbnail.split(":")[1] as keyof typeof BRAND_ICONS]?.label}</span>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setThumbnail(undefined)}>
+                      Clear
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+
               <TabsContent value="custom" className="space-y-3">
-                {thumbnail ? (
+                {thumbnail && !thumbnail.startsWith("brand:") ? (
                   <div className="relative">
                     <img src={thumbnail} alt="Thumbnail" className="w-full h-32 object-cover rounded-lg" />
                     <Button

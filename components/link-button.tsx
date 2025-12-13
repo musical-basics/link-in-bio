@@ -6,6 +6,7 @@ import type { Link as LinkType } from "@/lib/data"
 import * as LucideIcons from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { MoreVertical } from "lucide-react"
+import { BRAND_ICONS } from "@/components/brand-icons" // Correct placement
 import { Button } from "@/components/ui/button"
 
 interface LinkButtonProps {
@@ -33,6 +34,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
     onShare?.(link)
   }
 
+
   // Featured layout - image on top, title bar below (Linktree style)
   if (link.layout === "featured") {
     return (
@@ -46,7 +48,26 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
           className="group block w-full rounded-xl overflow-hidden bg-neutral-800 transition-all hover:scale-[1.01]"
         >
           {link.thumbnail ? (
-            <img src={link.thumbnail} alt={link.title} className="w-full aspect-video object-cover" />
+            link.thumbnail.startsWith("brand:") ? (
+              <div className="w-full aspect-video bg-neutral-900 flex items-center justify-center">
+                {(() => {
+                  const brandKey = link.thumbnail?.split(":")[1] as keyof typeof BRAND_ICONS
+                  const brandData = BRAND_ICONS[brandKey]
+                  if (!brandData) return <IconComponent className="h-16 w-16 text-neutral-500" />
+                  return (
+                    <svg
+                      viewBox={brandData.viewBox}
+                      className="h-20 w-20"
+                      style={{ fill: brandData.color || 'white' }}
+                    >
+                      <path d={brandData.path} />
+                    </svg>
+                  )
+                })()}
+              </div>
+            ) : (
+              <img src={link.thumbnail} alt={link.title} className="w-full aspect-video object-cover" />
+            )
           ) : (
             <div className="w-full aspect-video bg-gradient-to-br from-neutral-700 to-neutral-800 flex items-center justify-center">
               <IconComponent className="h-16 w-16 text-neutral-500" />
@@ -82,9 +103,28 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
         className="group flex w-full items-center gap-3 rounded-lg bg-neutral-800 pl-2 pr-3 py-2 transition-all hover:scale-[1.01] hover:bg-neutral-700"
       >
         {link.thumbnail ? (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden">
-            <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
-          </div>
+          link.thumbnail.startsWith("brand:") ? (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-900 overflow-hidden p-2">
+              {(() => {
+                const brandKey = link.thumbnail?.split(":")[1] as keyof typeof BRAND_ICONS
+                const brandData = BRAND_ICONS[brandKey]
+                if (!brandData) return <IconComponent className="h-6 w-6 text-neutral-500" />
+                return (
+                  <svg
+                    viewBox={brandData.viewBox}
+                    className="w-full h-full"
+                    style={{ fill: brandData.color || 'white' }}
+                  >
+                    <path d={brandData.path} />
+                  </svg>
+                )
+              })()}
+            </div>
+          ) : (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+              <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
+            </div>
+          )
         ) : (
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-neutral-700 text-neutral-400">
             <IconComponent className="h-5 w-5" />
@@ -108,3 +148,4 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
     </div>
   )
 }
+

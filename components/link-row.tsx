@@ -1,6 +1,8 @@
 "use client"
 
+
 import type { Link as LinkType } from "@/lib/data"
+import { BRAND_ICONS } from "@/components/brand-icons" // Correct placement
 import * as LucideIcons from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -54,11 +56,31 @@ export function LinkRow({ link, onEdit, onDelete, onToggleActive, sortableId }: 
         <GripVertical className="h-5 w-5" />
       </button>
 
+
       {/* Thumbnail / Icon */}
       {link.thumbnail ? (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg overflow-hidden">
-          <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
-        </div>
+        link.thumbnail.startsWith("brand:") ? (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-neutral-900 overflow-hidden p-1.5">
+            {(() => {
+              const brandKey = link.thumbnail?.split(":")[1] as keyof typeof BRAND_ICONS
+              const brandData = BRAND_ICONS[brandKey]
+              if (!brandData) return <IconComponent className="h-5 w-5 text-neutral-500" />
+              return (
+                <svg
+                  viewBox={brandData.viewBox}
+                  className="w-full h-full"
+                  style={{ fill: brandData.color || 'white' }}
+                >
+                  <path d={brandData.path} />
+                </svg>
+              )
+            })()}
+          </div>
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+            <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
+          </div>
+        )
       ) : (
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <IconComponent className="h-5 w-5" />
