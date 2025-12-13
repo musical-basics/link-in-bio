@@ -49,8 +49,8 @@ export default async function UserPage({ params }: UserPageProps) {
         imageObjectFit: user.profile.imageObjectFit || "cover",
         imageCrop: user.profile.imageCrop as { x: number; y: number; zoom: number } | undefined,
         // Hero section fields
-        heroHeadline: user.profile.heroHeadline || "My Story",
-        heroSubtitle: user.profile.heroSubtitle || "Welcome to my musical journey.",
+        heroHeadline: user.profile.heroHeadline ?? "My Story",
+        heroSubtitle: user.profile.heroSubtitle ?? "Welcome to my musical journey.",
         heroVideoUrl: user.profile.heroVideoUrl || undefined,
         showHero: user.profile.showHero !== false,
         // Theme
