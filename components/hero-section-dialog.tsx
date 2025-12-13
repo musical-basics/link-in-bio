@@ -29,8 +29,8 @@ const MAX_FILE_SIZE = 40 * 1024 * 1024 // 40MB
 
 export function HeroSectionDialog({ open, onOpenChange, initialData, onSuccess, userId }: HeroSectionDialogProps) {
     const [showHero, setShowHero] = useState(initialData.showHero !== false)
-    const [heroHeadline, setHeroHeadline] = useState(initialData.heroHeadline || "My Story")
-    const [heroSubtitle, setHeroSubtitle] = useState(initialData.heroSubtitle || "Welcome to my musical journey.")
+    const [heroHeadline, setHeroHeadline] = useState(initialData.heroHeadline ?? "My Story")
+    const [heroSubtitle, setHeroSubtitle] = useState(initialData.heroSubtitle ?? "Welcome to my musical journey.")
     const [heroVideoUrl, setHeroVideoUrl] = useState(initialData.heroVideoUrl || "")
 
     const [isLoading, setIsLoading] = useState(false)

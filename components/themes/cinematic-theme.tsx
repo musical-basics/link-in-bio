@@ -136,7 +136,7 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                     {profileData.heroHeadline || "My Story"}
                                 </h2>
                                 <p className="text-zinc-400 mb-6 max-w-lg">
-                                    {profileData.heroSubtitle || "Welcome to my musical journey."}
+                                    {profileData.heroSubtitle ?? "Welcome to my musical journey."}
                                 </p>
                                 <div className="flex items-center gap-2 text-white text-sm font-medium group-hover:gap-3 transition-all duration-300">
                                     <span>View Timeline</span>
