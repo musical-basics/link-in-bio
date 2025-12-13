@@ -5,6 +5,8 @@ import { Link } from "@/lib/data"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 interface UserPageProps {
     params: Promise<{
         username: string
@@ -23,6 +25,11 @@ export default async function UserPage({ params }: UserPageProps) {
     if (!user || !user.profile) {
         notFound()
     }
+
+    console.log("DEBUG: Rendering UserPage for", username)
+    console.log("DEBUG: Hero Headline:", user.profile.heroHeadline)
+    console.log("DEBUG: Hero Subtitle:", user.profile.heroSubtitle)
+    console.log("DEBUG: Show Hero:", user.profile.showHero)
 
     // Get user's links and groups
     const [linksResult, groupsResult] = await Promise.all([

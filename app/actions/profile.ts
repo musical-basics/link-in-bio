@@ -78,6 +78,7 @@ export async function updateProfile(data: {
 
         revalidatePath('/admin')
         revalidatePath(`/u/${user.username}`)
+        revalidatePath(`/u/${user.username.toLowerCase()}`)
         return { success: true, data: profile }
     } catch (error: any) {
         console.error('Failed to update profile:', error)
