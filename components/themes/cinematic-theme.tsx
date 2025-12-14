@@ -13,6 +13,8 @@ import { ShareLinkDialog } from "@/components/share-link-dialog"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import type { Link as LinkType, ProfileData } from "@/lib/data"
+import { CinematicHeroCard } from "@/components/cinematic-hero-card"
+import { BRAND_ICONS } from "@/components/brand-icons"
 
 interface Group {
     id: string
@@ -109,46 +111,15 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                     </div>
                 </div>
 
-                {/* Hero Card - Glassmorphism */}
+                {/* Hero Card */}
                 {profileData.showHero && (
                     <div className="mb-12">
-                        <div
-                            className="relative overflow-hidden rounded-2xl bg-zinc-900/30 backdrop-blur-xl border border-white/[0.08] p-8 transition-all duration-300 hover:bg-zinc-800/40 hover:border-white/[0.12] cursor-pointer group"
-                            onClick={handleCtaClick}
-                        >
-                            {/* Video background if available */}
-                            {profileData.heroVideoUrl && (
-                                <div className="absolute inset-0 z-0">
-                                    <video
-                                        autoPlay
-                                        muted
-                                        loop
-                                        playsInline
-                                        className="w-full h-full object-cover opacity-20"
-                                        src={profileData.heroVideoUrl}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40" />
-                                </div>
-                            )}
-
-                            <div className="relative z-10">
-                                <h2 className="font-serif text-2xl md:text-3xl text-white mb-3 tracking-tight">
-                                    {profileData.heroHeadline || "My Story"}
-                                </h2>
-                                <p className="text-zinc-400 mb-6 max-w-lg">
-                                    {profileData.heroSubtitle ?? "Welcome to my musical journey."}
-                                </p>
-                                <div className="flex items-center gap-2 text-white text-sm font-medium group-hover:gap-3 transition-all duration-300">
-                                    <span>View Timeline</span>
-                                    <ArrowRight className="h-4 w-4" />
-                                </div>
-                            </div>
-
-                            {/* Inner glow effect on hover */}
-                            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{
-                                boxShadow: '0 0 30px rgba(255,255,255,0.03), 0 0 60px rgba(255,255,255,0.02)'
-                            }} />
-                        </div>
+                        <CinematicHeroCard
+                            headline={profileData.heroHeadline ?? "My Story"}
+                            subtitle={profileData.heroSubtitle ?? "Welcome to my musical journey."}
+                            videoUrl={profileData.heroVideoUrl || undefined}
+                            onCtaClick={handleCtaClick}
+                        />
                     </div>
                 )}
 
@@ -187,13 +158,34 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                                 >
                                                     {/* Hero Image */}
                                                     {link.thumbnail ? (
-                                                        <div className="w-full aspect-video overflow-hidden">
-                                                            <img
-                                                                src={link.thumbnail}
-                                                                alt={link.title}
-                                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                            />
-                                                        </div>
+                                                        link.thumbnail.startsWith("brand:") ? (
+                                                            <div className="w-full aspect-video bg-zinc-900/50 flex items-center justify-center">
+                                                                {(() => {
+                                                                    const brandKey = link.thumbnail!.split("brand:")[1]
+                                                                    const brandData = BRAND_ICONS[brandKey as keyof typeof BRAND_ICONS]
+                                                                    if (brandData) {
+                                                                        return (
+                                                                            <svg
+                                                                                viewBox={brandData.viewBox}
+                                                                                className="h-20 w-20 transition-transform duration-500 group-hover:scale-110"
+                                                                                style={{ fill: brandData.color }}
+                                                                            >
+                                                                                <path d={brandData.path} />
+                                                                            </svg>
+                                                                        )
+                                                                    }
+                                                                    return null
+                                                                })()}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-full aspect-video overflow-hidden">
+                                                                <img
+                                                                    src={link.thumbnail}
+                                                                    alt={link.title}
+                                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                                />
+                                                            </div>
+                                                        )
                                                     ) : (
                                                         <div className="w-full aspect-video bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 flex items-center justify-center">
                                                             <IconComponent className="h-16 w-16 text-zinc-600" />
@@ -225,9 +217,30 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                             >
                                                 {/* Thumbnail or Icon */}
                                                 {link.thumbnail ? (
-                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden border border-white/10">
-                                                        <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
-                                                    </div>
+                                                    link.thumbnail.startsWith("brand:") ? (
+                                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden border border-white/10 bg-zinc-900/50">
+                                                            {(() => {
+                                                                const brandKey = link.thumbnail!.split("brand:")[1]
+                                                                const brandData = BRAND_ICONS[brandKey as keyof typeof BRAND_ICONS]
+                                                                if (brandData) {
+                                                                    return (
+                                                                        <svg
+                                                                            viewBox={brandData.viewBox}
+                                                                            className="h-6 w-6"
+                                                                            style={{ fill: brandData.color }}
+                                                                        >
+                                                                            <path d={brandData.path} />
+                                                                        </svg>
+                                                                    )
+                                                                }
+                                                                return null
+                                                            })()}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden border border-white/10">
+                                                            <img src={link.thumbnail} alt="" className="w-full h-full object-cover" />
+                                                        </div>
+                                                    )
                                                 ) : (
                                                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-zinc-400 group-hover:text-white transition-colors">
                                                         <IconComponent className="h-5 w-5" />
