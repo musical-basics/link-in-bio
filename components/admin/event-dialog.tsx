@@ -9,17 +9,20 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { upsertTimelineEvent } from "@/app/actions/timeline"
 import { toast } from "sonner"
-import { Upload } from "lucide-react"
+import { Upload, Loader2 } from "lucide-react"
 import type { TimelineEvent } from "@prisma/client"
+import { getSupabase } from "@/lib/supabase"
 
 interface EventDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     event?: TimelineEvent | null
+    userId: string
 }
 
-export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
+export function EventDialog({ open, onOpenChange, event, userId }: EventDialogProps) {
     const [loading, setLoading] = useState(false)
+    const [uploading, setUploading] = useState(false)
 
     const [formData, setFormData] = useState({
         title: "",
@@ -65,9 +68,53 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
             toast.success(event ? "Event updated" : "Event created")
             onOpenChange(false)
         } catch (error) {
+            console.error(error)
             toast.error("Failed to save event")
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        // 5MB limit
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image must be under 5MB")
+            return
+        }
+
+        setUploading(true)
+        try {
+            const supabase = getSupabase()
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+
+            const { data, error } = await supabase.storage
+                .from('timeline-media')
+                .upload(fileName, file)
+
+            if (error) {
+                console.error("Supabase upload error:", error)
+                throw error
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('timeline-media')
+                .getPublicUrl(fileName)
+
+            setFormData({
+                ...formData,
+                mediaUrl: publicUrl,
+                mediaType: "image"
+            })
+            toast.success("Image uploaded")
+        } catch (error) {
+            console.error("Upload failed:", error)
+            toast.error("Failed to upload image. Please try again.")
+        } finally {
+            setUploading(false)
         }
     }
 
@@ -137,36 +184,22 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
                                 <div className="flex-1">
                                     <label
                                         htmlFor="event-media-upload"
-                                        className="inline-flex cursor-pointer items-center justify-center rounded-md border border-zinc-800 bg-black/50 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+                                        className={`inline-flex cursor-pointer items-center justify-center rounded-md border border-zinc-800 bg-black/50 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-400 ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
                                     >
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        Upload Image
+                                        {uploading ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Upload className="mr-2 h-4 w-4" />
+                                        )}
+                                        {uploading ? "Uploading..." : "Upload Image"}
                                     </label>
                                     <input
                                         id="event-media-upload"
                                         type="file"
                                         accept="image/*"
                                         className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0]
-                                            if (!file) return
-
-                                            // 2MB limit
-                                            if (file.size > 2 * 1024 * 1024) {
-                                                toast.error("Image must be under 2MB")
-                                                return
-                                            }
-
-                                            const reader = new FileReader()
-                                            reader.onloadend = () => {
-                                                setFormData({
-                                                    ...formData,
-                                                    mediaUrl: reader.result as string,
-                                                    mediaType: "image"
-                                                })
-                                            }
-                                            reader.readAsDataURL(file)
-                                        }}
+                                        disabled={uploading}
+                                        onChange={handleFileUpload}
                                     />
                                     <p className="mt-1 text-xs text-zinc-500">Max 2MB. Automatically sets type to "Image".</p>
                                 </div>

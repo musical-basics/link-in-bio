@@ -61,9 +61,10 @@ export async function upsertTimelineEvent(data: {
         throw new Error("Unauthorized")
     }
 
+    let event;
     if (data.id) {
         // Update existing event
-        await prisma.timelineEvent.update({
+        event = await prisma.timelineEvent.update({
             where: {
                 id: data.id,
                 userId: session.user.id // Ensure ownership
@@ -86,7 +87,7 @@ export async function upsertTimelineEvent(data: {
 
         const newOrder = lastEvent ? lastEvent.order + 1 : 0
 
-        await prisma.timelineEvent.create({
+        event = await prisma.timelineEvent.create({
             data: {
                 title: data.title,
                 year: data.year,
@@ -101,6 +102,8 @@ export async function upsertTimelineEvent(data: {
 
     revalidatePath("/admin/timeline-builder")
     revalidatePath(`/u/${session.user.username}/story`)
+
+    return { success: true, data: event }
 }
 
 export async function deleteTimelineEvent(id: string) {

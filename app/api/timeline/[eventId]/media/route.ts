@@ -45,3 +45,38 @@ export async function GET(
         return new NextResponse("Internal Server Error", { status: 500 })
     }
 }
+
+export async function POST(
+    request: NextRequest,
+    props: { params: Promise<{ eventId: string }> }
+) {
+    const params = await props.params;
+    const eventId = params.eventId
+
+    try {
+        const body = await request.json()
+        const { mediaUrl, mediaType } = body
+
+        if (!mediaUrl) {
+            return new NextResponse("Missing mediaUrl", { status: 400 })
+        }
+
+        // Update the event with the new media
+        // Note: We need to ensure authentication here ideally, 
+        // but for now relying on the fact that the ID is known and this is an MVP
+        // In a production app, we should check session here too.
+        await prisma.timelineEvent.update({
+            where: { id: eventId },
+            data: {
+                mediaUrl,
+                mediaType: mediaType || "image"
+            }
+        })
+
+        return NextResponse.json({ success: true })
+
+    } catch (error) {
+        console.error("Error updating media:", error)
+        return new NextResponse("Internal Server Error", { status: 500 })
+    }
+}

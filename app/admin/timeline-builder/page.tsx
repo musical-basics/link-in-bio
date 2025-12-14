@@ -73,7 +73,7 @@ export default async function TimelineBuilderPage() {
                 </div>
             </div>
 
-            <TimelineEditor initialEvents={events} />
+            <TimelineEditor initialEvents={events} userId={session.user.id} />
         </div>
     )
 }

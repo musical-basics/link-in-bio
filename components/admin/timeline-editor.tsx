@@ -27,9 +27,10 @@ import { toast } from "sonner"
 
 interface TimelineEditorProps {
     initialEvents: TimelineEvent[]
+    userId: string
 }
 
-export function TimelineEditor({ initialEvents }: TimelineEditorProps) {
+export function TimelineEditor({ initialEvents, userId }: TimelineEditorProps) {
     const [events, setEvents] = useState(initialEvents)
     const [activeId, setActiveId] = useState<string | null>(null)
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -167,6 +168,7 @@ export function TimelineEditor({ initialEvents }: TimelineEditorProps) {
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 event={editingEvent}
+                userId={userId}
             />
         </div>
     )
