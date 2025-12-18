@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         const viewsDays = viewsData.result?.[0]?.days || []
 
         // 2. Total Clicks (Total link_clicked events)
-        const clicksResponse = await fetch(`${host}/api/projects/${projectId}/insights/trend/?events=[{"id":"link_clicked","math":"total","properties":[{"key":"$current_url","value":"${username}","operator":"icontains"}]}]&date_from=${dateFrom}`, {
+        const clicksResponse = await fetch(`${host}/api/projects/${projectId}/insights/trend/?events=[{"id":"link_clicked","math":"total"}]&date_from=${dateFrom}`, {
             headers: { Authorization: `Bearer ${apiKey}` }
         })
         const clicksData = await clicksResponse.json()
