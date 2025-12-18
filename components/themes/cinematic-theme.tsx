@@ -159,7 +159,7 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     onClick={() => {
-                                                        console.log('Tracking click:', link.title)
+                                                        console.log("🔥 Firing link_clicked for:", link.title)
                                                         posthog?.capture('link_clicked', {
                                                             link_id: link.id,
                                                             link_url: link.url,
@@ -227,7 +227,7 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 onClick={() => {
-                                                    console.log('Tracking click:', link.title)
+                                                    console.log("🔥 Firing link_clicked for:", link.title)
                                                     posthog?.capture('link_clicked', {
                                                         link_id: link.id,
                                                         link_url: link.url,

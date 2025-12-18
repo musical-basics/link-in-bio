@@ -31,7 +31,7 @@ export function SocialIcons({ socials }: SocialIconsProps) {
             rel="noopener noreferrer"
             aria-label={social.label}
             onClick={() => {
-              console.log('Tracking click:', social.label)
+              console.log("🔥 Firing link_clicked for:", social.label)
               posthog?.capture('link_clicked', {
                 section: 'socials',
                 link_url: social.url,

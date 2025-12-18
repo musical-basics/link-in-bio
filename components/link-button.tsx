@@ -21,7 +21,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
   const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
 
   const handleLinkClick = () => {
-    console.log('Tracking click:', link.title)
+    console.log("🔥 Firing link_clicked for:", link.title)
     posthog?.capture('link_clicked', {
       link_id: link.id,
       link_url: link.url,

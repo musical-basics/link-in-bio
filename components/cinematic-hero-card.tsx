@@ -5,6 +5,7 @@ import type React from "react"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { useRef } from "react"
+import { usePostHog } from 'posthog-js/react'
 
 interface CinematicHeroCardProps {
     headline: string
@@ -23,6 +24,7 @@ export function CinematicHeroCard({
 }: CinematicHeroCardProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const mousePosition = useRef({ x: 0, y: 0 })
+    const posthog = usePostHog()
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!containerRef.current) return
@@ -165,7 +167,16 @@ export function CinematicHeroCard({
                     <motion.button
                         variants={buttonVariants}
                         whileHover="hover"
-                        onClick={onCtaClick}
+                        onClick={() => {
+                            console.log("🔥 Firing link_clicked for: Hero CTA")
+                            posthog?.capture('link_clicked', {
+                                link_id: 'hero_cta',
+                                link_url: '/story', // Fallback or derived from context if available, but for now specific to CTA
+                                link_title: ctaText,
+                                section: 'hero'
+                            })
+                            onCtaClick?.()
+                        }}
                         className="group relative mt-2 px-8 py-3 rounded-full text-sm font-medium text-white overflow-hidden"
                     >
                         {/* Gradient background - grey/white */}
