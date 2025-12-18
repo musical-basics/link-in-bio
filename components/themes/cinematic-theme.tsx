@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import type { Link as LinkType, ProfileData } from "@/lib/data"
 import { CinematicHeroCard } from "@/components/cinematic-hero-card"
 import { BRAND_ICONS } from "@/components/brand-icons"
+import { usePostHog } from "posthog-js/react"
 
 interface Group {
     id: string
@@ -33,7 +34,9 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
     const router = useRouter()
     const [sharePageOpen, setSharePageOpen] = useState(false)
     const [shareLinkOpen, setShareLinkOpen] = useState(false)
+
     const [selectedLink, setSelectedLink] = useState<LinkType | null>(null)
+    const posthog = usePostHog()
 
     const handleCtaClick = () => {
         router.push(`/${profileData.username}/story`)
@@ -149,11 +152,21 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                         // Featured layout - large image on top with title bar below
                                         if (link.layout === "featured") {
                                             return (
+
                                                 <a
                                                     key={link.id}
                                                     href={link.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
+                                                    onClick={() => {
+                                                        console.log('Tracking click:', link.title)
+                                                        posthog?.capture('link_clicked', {
+                                                            link_id: link.id,
+                                                            link_url: link.url,
+                                                            link_title: link.title,
+                                                            section: 'link_list'
+                                                        })
+                                                    }}
                                                     className="group block relative overflow-hidden rounded-2xl bg-zinc-900/30 backdrop-blur-xl border border-white/[0.08] transition-all duration-300 hover:bg-zinc-800/40 hover:border-white/[0.12] hover:scale-[1.01]"
                                                 >
                                                     {/* Hero Image */}
@@ -213,6 +226,15 @@ export function CinematicTheme({ initialLinks, initialGroups, profileData }: Cin
                                                 href={link.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
+                                                onClick={() => {
+                                                    console.log('Tracking click:', link.title)
+                                                    posthog?.capture('link_clicked', {
+                                                        link_id: link.id,
+                                                        link_url: link.url,
+                                                        link_title: link.title,
+                                                        section: 'link_list'
+                                                    })
+                                                }}
                                                 className="group flex items-center gap-4 relative overflow-hidden rounded-xl bg-zinc-900/30 backdrop-blur-xl border border-white/[0.08] p-4 transition-all duration-300 hover:bg-zinc-800/40 hover:border-white/[0.12] hover:scale-[1.02]"
                                             >
                                                 {/* Thumbnail or Icon */}

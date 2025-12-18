@@ -31,11 +31,11 @@ export function SocialIcons({ socials }: SocialIconsProps) {
             rel="noopener noreferrer"
             aria-label={social.label}
             onClick={() => {
-              posthog.capture('link_clicked', {
-                link_id: 'social',
+              console.log('Tracking click:', social.label)
+              posthog?.capture('link_clicked', {
+                section: 'socials',
                 link_url: social.url,
                 link_title: social.label,
-                section: 'header' // or 'hero' depending on placement, but 'header' implies top/socials
               })
             }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-card text-foreground transition-all hover:scale-110 hover:bg-primary hover:text-primary-foreground"
@@ -44,6 +44,6 @@ export function SocialIcons({ socials }: SocialIconsProps) {
           </a>
         )
       })}
-    </div>
+    </div >
   )
 }
