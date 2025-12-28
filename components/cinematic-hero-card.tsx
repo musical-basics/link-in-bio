@@ -15,6 +15,20 @@ interface CinematicHeroCardProps {
     onCtaClick?: () => void
 }
 
+// Helper function to extract YouTube video ID from various URL formats
+function getYouTubeVideoId(url: string): string | null {
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+        /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/,
+    ]
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern)
+        if (match) return match[1]
+    }
+    return null
+}
+
 export function CinematicHeroCard({
     headline,
     subtitle,
@@ -25,6 +39,9 @@ export function CinematicHeroCard({
     const containerRef = useRef<HTMLDivElement>(null)
     const mousePosition = useRef({ x: 0, y: 0 })
     const posthog = usePostHog()
+
+    // Check if the video URL is a YouTube URL
+    const youtubeVideoId = videoUrl ? getYouTubeVideoId(videoUrl) : null
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!containerRef.current) return
@@ -112,9 +129,21 @@ export function CinematicHeroCard({
         >
             {/* Background container with glassmorphism */}
             <div className="relative overflow-hidden rounded-xl">
-                <video className="absolute inset-0 w-full h-full object-cover" autoPlay loop muted playsInline>
-                    <source src={videoUrl || defaultVideoUrl} type="video/mp4" />
-                </video>
+                {youtubeVideoId ? (
+                    // YouTube iframe embed - uses YouTube's bandwidth, not Supabase!
+                    <iframe
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?autoplay=1&mute=1&loop=1&playlist=${youtubeVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                        title="Background video"
+                        allow="autoplay; encrypted-media"
+                        style={{ border: 'none' }}
+                    />
+                ) : (
+                    // Regular video element for direct MP4 URLs
+                    <video className="absolute inset-0 w-full h-full object-cover" autoPlay loop muted playsInline>
+                        <source src={videoUrl || defaultVideoUrl} type="video/mp4" />
+                    </video>
+                )}
 
                 <div className="absolute inset-0 bg-black/70" />
 
