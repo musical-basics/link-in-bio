@@ -1,30 +1,27 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Header } from "@/components/landing/header"
+import { HeroSection } from "@/components/landing/hero-section"
+import { FeaturesSection } from "@/components/landing/features-section"
+import { ComparisonSection } from "@/components/landing/comparison-section"
+import { PricingSection } from "@/components/landing/pricing-section"
+import { Footer } from "@/components/landing/footer"
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl">Link in Bio</CardTitle>
-          <CardDescription>
-            Create your personalized link page
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <Link href="/login" className="w-full">
-            <Button className="w-full" size="lg">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/signup" className="w-full">
-            <Button variant="outline" className="w-full" size="lg">
-              Create Account
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
-    </div>
+    <main className="min-h-screen bg-zinc-950 text-white overflow-x-hidden">
+      <Header />
+      <div id="hero">
+        <HeroSection />
+      </div>
+      <div id="features">
+        <FeaturesSection />
+      </div>
+      <div id="comparison">
+        <ComparisonSection />
+      </div>
+      <div id="pricing">
+        <PricingSection />
+      </div>
+      <Footer />
+    </main>
   )
 }
