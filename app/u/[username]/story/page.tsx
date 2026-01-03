@@ -1,4 +1,4 @@
-import { TimelineFeed } from "@/components/timeline-feed"
+import { EditorialTimeline } from "@/components/timeline/editorial-timeline"
 import { getPublicTimelineEvents } from "@/app/actions/timeline"
 import { notFound } from "next/navigation"
 import { auth } from "@/auth"
@@ -45,7 +45,7 @@ export default async function StoryPage({ params }: PageProps) {
 
       {/* Stage Spotlight Effect */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800/50 via-zinc-900/20 to-transparent" />
-      <TimelineFeed events={events} />
+      <EditorialTimeline events={events} />
     </div>
   )
 }

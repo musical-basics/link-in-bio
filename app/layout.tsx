@@ -1,7 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { Playfair_Display } from "next/font/google"
+import { Cormorant_Garamond } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { PostHogProvider } from "@/providers/posthog-provider"
 import PostHogPageView from "@/components/posthog-pageview"
@@ -11,7 +11,11 @@ import "./globals.css"
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" })
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["300", "400", "500", "600", "700"]
+})
 
 export const metadata: Metadata = {
   title: "Link in Bio - Your Digital Hub",
@@ -43,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`font-sans antialiased ${playfair.variable}`}>
+      <body className={`font-sans antialiased ${cormorantGaramond.variable}`}>
         <PostHogProvider>
           <PostHogPageView />
           {children}
