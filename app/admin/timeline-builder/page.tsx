@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Eye, ChevronLeft } from "lucide-react"
 import Link from "next/link"
 
+import { TimelineLayoutToggle } from "@/components/admin/timeline-layout-toggle"
+import { prisma } from "@/lib/prisma"
+
 export default async function TimelineBuilderPage() {
     const session = await auth()
 
@@ -16,6 +19,11 @@ export default async function TimelineBuilderPage() {
     }
 
     const events = await getTimelineEvents()
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: { profile: true }
+    })
+    const profile = user?.profile
 
     // Calculate Stats
     const totalEvents = events.length
@@ -70,6 +78,13 @@ export default async function TimelineBuilderPage() {
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
                     <div className="text-sm font-medium text-zinc-400">Timeline Span</div>
                     <div className="mt-2 text-3xl font-bold text-white">{timelineSpan}</div>
+                </div>
+            </div>
+
+            {/* Layout Toggle */}
+            <div className="flex justify-end">
+                <div className="w-full md:w-auto">
+                    <TimelineLayoutToggle currentLayout={profile?.timelineLayout || "editorial"} />
                 </div>
             </div>
 

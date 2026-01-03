@@ -53,6 +53,7 @@ model Profile {
   heroVideoUrl   String?
   showHero       Boolean  @default(true)
   theme          String   @default("classic")
+  timelineLayout String   @default("editorial")
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

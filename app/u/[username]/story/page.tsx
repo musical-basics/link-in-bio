@@ -1,10 +1,12 @@
 import { EditorialTimeline } from "@/components/timeline/editorial-timeline"
+import { TimelineFeed } from "@/components/timeline-feed"
 import { getPublicTimelineEvents } from "@/app/actions/timeline"
 import { notFound } from "next/navigation"
 import { auth } from "@/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Edit } from "lucide-react"
+import { prisma } from "@/lib/prisma"
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -15,13 +17,29 @@ export default async function StoryPage({ params }: PageProps) {
   const session = await auth()
   const isOwner = session?.user?.username === username
 
-  console.log("StoryPage received username:", username)
+  // Fetch events and user/profile in parallel or optimized way
+  // Since we need profile for the setting, we fetch user including profile
+  const user = await prisma.user.findUnique({
+    where: { username },
+    include: { profile: true }
+  })
+
+  if (!user) {
+    notFound()
+  }
+
   const events = await getPublicTimelineEvents(username)
-  console.log("StoryPage events result:", events ? "Found" : "Null")
 
   if (!events) {
     notFound()
   }
+
+  // Cast events to any as we know the shape matches both components (mostly)
+  // Or map them if needed. Both components expect similar structures now.
+  // EditorialTimeline expects 'year: number'
+  // TimelineFeed (updated) expects 'year: number'
+
+  const layout = user.profile?.timelineLayout || "editorial"
 
   return (
     <div className="relative min-h-screen bg-black">
@@ -45,7 +63,12 @@ export default async function StoryPage({ params }: PageProps) {
 
       {/* Stage Spotlight Effect */}
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800/50 via-zinc-900/20 to-transparent" />
-      <EditorialTimeline events={events} />
+
+      {layout === "editorial" ? (
+        <EditorialTimeline events={events} />
+      ) : (
+        <TimelineFeed events={events} />
+      )}
     </div>
   )
 }

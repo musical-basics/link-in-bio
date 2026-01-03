@@ -2,16 +2,25 @@
 
 import { useRef, useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Music, Mic, Youtube, Award, MapPin } from "lucide-react"
+import { Music } from "lucide-react"
 import type React from "react"
 
-
-
-// Adapting Prisma type for checking media type
-import type { TimelineEvent } from "@prisma/client"
+// Define local interface for events matching what getPublicTimelineEvents returns
+interface FeedEvent {
+  id: string
+  title: string
+  description: string | null
+  year: number
+  mediaType: string
+  mediaUrl?: string | null
+  userId?: string
+  createdAt?: Date
+  updatedAt?: Date
+  order?: number
+}
 
 interface EventCardProps {
-  event: TimelineEvent
+  event: FeedEvent
   isVisible: boolean
   onActiveChange?: (isActive: boolean) => void
 }
@@ -126,10 +135,8 @@ const EventCard: React.FC<EventCardProps> = ({ event, isVisible, onActiveChange 
   )
 }
 
-import type { TimelineEvent as PrismaTimelineEvent } from "@prisma/client"
-
 interface TimelineFeedProps {
-  events: PrismaTimelineEvent[]
+  events: FeedEvent[]
 }
 
 export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
@@ -155,7 +162,7 @@ export const TimelineFeed: React.FC<TimelineFeedProps> = ({ events }) => {
       acc[event.year].push(event)
       return acc
     },
-    {} as Record<number, PrismaTimelineEvent[]>,
+    {} as Record<number, FeedEvent[]>,
   )
 
   const sortedYears = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b)

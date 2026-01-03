@@ -147,3 +147,19 @@ export async function reorderTimelineEvents(items: { id: string; order: number }
     revalidatePath("/admin/timeline-builder")
     revalidatePath(`/${session.user.username}/story`)
 }
+
+export async function updateTimelineLayout(layout: "classic" | "editorial") {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+        throw new Error("Unauthorized")
+    }
+
+    await prisma.profile.update({
+        where: { userId: session.user.id },
+        data: { timelineLayout: layout },
+    })
+
+    revalidatePath("/admin/timeline-builder")
+    revalidatePath(`/u/${session.user.username}/story`)
+}
