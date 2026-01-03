@@ -9,18 +9,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String   // Hashed with bcrypt
-  username  String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  profile   Profile?
-  links     Link[]
-
-  groups    Group[]
-  timelineEvents TimelineEvent[] // Relation to timeline events
+  id             String          @id @default(cuid())
+  email          String          @unique
+  password       String
+  username       String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  groups         Group[]
+  links          Link[]
+  profile        Profile?
+  timelineEvents TimelineEvent[]
 }
 
 model TimelineEvent {
@@ -29,12 +27,12 @@ model TimelineEvent {
   description String?
   year        Int
   mediaUrl    String?
-  mediaType   String   @default("image") // "image" or "video"
+  mediaType   String   @default("image")
   order       Int      @default(0)
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -45,20 +43,16 @@ model Profile {
   name           String
   bio            String?
   imageUrl       String?
-  imageObjectFit String?  @default("cover") // How image fills avatar: cover, contain, fill
-  imageCrop      Json?    // Crop area and zoom: { x, y, zoom }
-  socials        Json?    // Store socials as JSON array
-  theme          String   @default("classic")  // "classic" or "cinematic"
-  
-  // Hero section fields
+  socials        Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  imageCrop      Json?
+  imageObjectFit String?  @default("cover")
   heroHeadline   String   @default("My Story")
   heroSubtitle   String   @default("Welcome to my musical journey.")
   heroVideoUrl   String?
   showHero       Boolean  @default(true)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
+  theme          String   @default("classic")
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -72,14 +66,13 @@ model Link {
   clicks    Int      @default(0)
   order     Int      @default(0)
   isActive  Boolean  @default(true)
-  layout    String   @default("classic")  // "classic" or "featured"
-  thumbnail String?                        // Uploaded image URL for hero/icon
-  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+  userId    String
+  layout    String   @default("classic")
+  thumbnail String?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 
@@ -88,13 +81,11 @@ model Group {
   name        String
   description String?
   order       Int      @default(0)
-  userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+  userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([name, userId])
   @@index([userId])
 }
-
