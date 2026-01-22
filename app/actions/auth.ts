@@ -66,25 +66,53 @@ export async function signup(formData: FormData) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user and profile
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                username,
-                profile: {
-                    create: {
-                        name,
-                        bio: null,
-                        imageUrl: null,
-                        socials: null,
+        // 1. Transaction: Create User AND Default Groups
+        await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    email,
+                    password: hashedPassword,
+                    username,
+                    profile: {
+                        create: {
+                            name,
+                            bio: "Welcome to my page!",
+                            imageUrl: null,
+                            // Initialize storage used to 0
+                            storageUsed: 0,
+                        },
                     },
                 },
-            },
+            });
+
+            // Seed default groups so the user isn't staring at a blank screen
+            await tx.group.createMany({
+                data: [
+                    { name: "Music", description: "My latest releases", order: 1, userId: user.id },
+                    { name: "Socials", description: "Connect with me", order: 2, userId: user.id },
+                    { name: "Work", description: "Projects & Portfolio", order: 3, userId: user.id },
+                ]
+            });
         });
 
-        revalidatePath('/login');
-        return { success: true, data: user };
+        // 2. Auto-Login immediately
+        try {
+            await signIn('credentials', {
+                email,
+                password,
+                redirect: false,
+            });
+        } catch (err) {
+            console.error("Auto-login failed:", err);
+            // If auto-login fails, we still return success for signup, 
+            // but the client might need to redirect to login.
+            // However, the client logic will redirect to admin if success is true.
+            // So if auto-login fails, the user will be redirected to admin but might be unauthenticated?
+            // NextAuth/Auth.js handles session cookies, so if signIn worked, they are logged in.
+        }
+
+        revalidatePath('/admin');
+        return { success: true };
     } catch (error) {
         console.error('Signup error:', error);
         return { success: false, error: 'Failed to create account' };

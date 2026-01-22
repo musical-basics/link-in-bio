@@ -32,7 +32,8 @@ export function SignupForm() {
         const result = await signup(formData)
 
         if (result.success) {
-            router.push("/login?signup=success")
+            router.push("/admin")
+            router.refresh()
         } else {
             setError(result.error || "Failed to create account")
         }
