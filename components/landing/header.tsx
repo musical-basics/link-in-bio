@@ -53,7 +53,7 @@ export function Header() {
                     </Link>
                     <Link href="/signup">
                         <Button className="bg-white text-black hover:bg-zinc-200 rounded-full px-6">
-                            Sign Up
+                            Get Started Free
                         </Button>
                     </Link>
                 </nav>
@@ -98,7 +98,7 @@ export function Header() {
                         </Link>
                         <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
                             <Button className="w-full bg-white text-black py-6 text-lg rounded-full">
-                                Sign Up
+                                Get Started Free
                             </Button>
                         </Link>
                     </motion.div>
