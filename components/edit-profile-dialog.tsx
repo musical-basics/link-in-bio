@@ -33,8 +33,6 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [showImageEditor, setShowImageEditor] = useState(false)
-    const [objectFit, setObjectFit] = useState(initialData.imageObjectFit || "cover")
-    const [cropData, setCropData] = useState(initialData.imageCrop || { x: 0, y: 0, zoom: 1 })
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -62,9 +60,9 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
         reader.readAsDataURL(file)
     }
 
-    const handleImageEditorSave = (data: { croppedArea: Area; zoom: number; objectFit: string }) => {
-        setCropData({ x: data.croppedArea.x, y: data.croppedArea.y, zoom: data.zoom })
-        setObjectFit(data.objectFit)
+    const handleImageEditorSave = (croppedImage: string) => {
+        setImagePreview(croppedImage)
+        setImageUrl(croppedImage)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -77,8 +75,6 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                 name,
                 bio: bio || undefined,
                 imageUrl: imageUrl || undefined,
-                imageObjectFit: objectFit,
-                imageCrop: cropData,
             })
 
             setIsLoading(false)
@@ -210,8 +206,6 @@ export function EditProfileDialog({ open, onOpenChange, initialData, onSuccess }
                     onOpenChange={setShowImageEditor}
                     imageUrl={imagePreview}
                     onSave={handleImageEditorSave}
-                    initialCrop={cropData}
-                    initialObjectFit={objectFit}
                 />
             )}
         </Dialog>

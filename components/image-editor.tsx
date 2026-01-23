@@ -6,16 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ZoomIn, ZoomOut } from "lucide-react"
+import { ZoomIn, ZoomOut, Loader2 } from "lucide-react"
 
 interface ImageEditorProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     imageUrl: string
-    onSave: (cropData: { croppedArea: Area; zoom: number; objectFit: string }) => void
-    initialCrop?: { x: number; y: number; zoom: number }
-    initialObjectFit?: string
+    // CHANGE: onSave now returns the actual cropped image string, not just coordinates
+    onSave: (croppedImage: string) => void
 }
 
 export function ImageEditor({
@@ -23,124 +21,145 @@ export function ImageEditor({
     onOpenChange,
     imageUrl,
     onSave,
-    initialCrop,
-    initialObjectFit = "cover"
 }: ImageEditorProps) {
-    const [crop, setCrop] = useState(initialCrop || { x: 0, y: 0 })
-    const [zoom, setZoom] = useState(initialCrop?.zoom || 1)
-    const [objectFit, setObjectFit] = useState(initialObjectFit)
+    const [crop, setCrop] = useState({ x: 0, y: 0 })
+    const [zoom, setZoom] = useState(1)
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+    const [isProcessing, setIsProcessing] = useState(false)
 
     const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels)
     }, [])
 
-    const handleSave = () => {
-        if (croppedAreaPixels) {
-            onSave({
-                croppedArea: croppedAreaPixels,
-                zoom,
-                objectFit
-            })
+    // --- UTILITY: Create the cropped image ---
+    const createCroppedImage = async (imageSrc: string, pixelCrop: Area): Promise<string> => {
+        const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const img = new Image()
+            img.addEventListener('load', () => resolve(img))
+            img.addEventListener('error', (error) => reject(error))
+            img.src = imageSrc
+        })
+
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+
+        if (!ctx) {
+            throw new Error('No 2d context')
+        }
+
+        // Set canvas size to the cropped size
+        canvas.width = pixelCrop.width
+        canvas.height = pixelCrop.height
+
+        // Draw the cropped image onto the canvas
+        ctx.drawImage(
+            image,
+            pixelCrop.x,
+            pixelCrop.y,
+            pixelCrop.width,
+            pixelCrop.height,
+            0,
+            0,
+            pixelCrop.width,
+            pixelCrop.height
+        )
+
+        // Return as Base64 string
+        return canvas.toDataURL('image/jpeg', 0.9)
+    }
+
+    const handleSave = async () => {
+        if (!croppedAreaPixels) return
+
+        setIsProcessing(true)
+        try {
+            const croppedImage = await createCroppedImage(imageUrl, croppedAreaPixels)
+            onSave(croppedImage)
             onOpenChange(false)
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setIsProcessing(false)
         }
     }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] bg-zinc-950 border-zinc-800 text-white">
                 <DialogHeader>
                     <DialogTitle>Edit Profile Image</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
-                    {/* Image Display Mode Selector */}
-                    <div className="space-y-3">
-                        <Label>Image Display</Label>
-                        <RadioGroup value={objectFit} onValueChange={setObjectFit}>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="cover" id="cover" />
-                                <Label htmlFor="cover" className="font-normal cursor-pointer">
-                                    Cover - Fill entire circle (may crop)
-                                </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="contain" id="contain" />
-                                <Label htmlFor="contain" className="font-normal cursor-pointer">
-                                    Contain - Fit entire image (may show background)
-                                </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="fill" id="fill" />
-                                <Label htmlFor="fill" className="font-normal cursor-pointer">
-                                    Fill - Stretch to fill circle
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-
                     {/* Crop Area */}
-                    <div className="space-y-3">
-                        <Label>Position & Zoom</Label>
-                        <div className="relative w-full h-[300px] bg-muted rounded-lg overflow-hidden">
-                            <Cropper
-                                image={imageUrl}
-                                crop={crop}
-                                zoom={zoom}
-                                aspect={1}
-                                cropShape="round"
-                                showGrid={false}
-                                onCropChange={setCrop}
-                                onZoomChange={setZoom}
-                                onCropComplete={onCropComplete}
-                                objectFit={objectFit as "contain" | "cover" | "horizontal-cover" | "vertical-cover"}
-                            />
-                        </div>
+                    <div className="relative w-full h-[350px] bg-black/50 rounded-lg overflow-hidden border border-zinc-800">
+                        <Cropper
+                            image={imageUrl}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1}
+                            cropShape="round"
+                            showGrid={false}
+                            onCropChange={setCrop}
+                            onZoomChange={setZoom}
+                            onCropComplete={onCropComplete}
+                            // Restrict zoom to keep image within bounds if desired, or allow free roam
+                            minZoom={1}
+                            maxZoom={3}
+                        />
                     </div>
+                    <p className="text-xs text-zinc-500 text-center">
+                        Drag to position • Scroll to zoom
+                    </p>
 
-                    {/* Zoom Slider */}
+                    {/* Zoom Controls */}
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <Label>Zoom</Label>
-                            <span className="text-sm text-muted-foreground">{Math.round(zoom * 100)}%</span>
+                            <Label className="text-zinc-400">Zoom</Label>
+                            <span className="text-sm text-zinc-500">{Math.round(zoom * 100)}%</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <ZoomOut className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setZoom(Math.max(1, zoom - 0.1))}
+                                className="text-zinc-400 hover:text-white"
+                                type="button"
+                            >
+                                <ZoomOut className="h-4 w-4" />
+                            </button>
+
                             <Slider
                                 value={[zoom]}
                                 onValueChange={(value) => setZoom(value[0])}
                                 min={1}
                                 max={3}
-                                step={0.1}
+                                step={0.01}
                                 className="flex-1"
                             />
-                            <ZoomIn className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                    </div>
 
-                    {/* Preview */}
-                    <div className="space-y-3">
-                        <Label>Preview</Label>
-                        <div className="flex justify-center">
-                            <div
-                                className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20"
-                                style={{
-                                    backgroundImage: `url(${imageUrl})`,
-                                    backgroundPosition: `${-crop.x * zoom}px ${-crop.y * zoom}px`,
-                                    backgroundSize: objectFit === 'cover' ? 'cover' : objectFit === 'contain' ? 'contain' : '100% 100%',
-                                    backgroundRepeat: 'no-repeat'
-                                }}
-                            />
+                            <button
+                                onClick={() => setZoom(Math.min(3, zoom + 0.1))}
+                                className="text-zinc-400 hover:text-white"
+                                type="button"
+                            >
+                                <ZoomIn className="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="text-zinc-400 hover:text-white">
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handleSave}>
-                        Save Changes
+                    <Button onClick={handleSave} disabled={isProcessing} className="bg-white text-black hover:bg-zinc-200">
+                        {isProcessing ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                            </>
+                        ) : (
+                            "Apply Crop"
+                        )}
                     </Button>
                 </DialogFooter>
             </DialogContent>
