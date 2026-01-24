@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -88,11 +89,33 @@ async function main() {
     // Clear existing data
     await prisma.link.deleteMany()
     await prisma.group.deleteMany()
+    await prisma.user.deleteMany()
+
+    // Create default user
+    const hashedPassword = await bcrypt.hash('password', 10)
+    const user = await prisma.user.create({
+        data: {
+            email: 'test@example.com',
+            username: 'testuser',
+            password: hashedPassword,
+            profile: {
+                create: {
+                    name: 'Test User',
+                    bio: 'Welcome to my page!',
+                    storageUsed: 0,
+                }
+            }
+        }
+    })
+    console.log(`Created user: ${user.username}`)
 
     // Seed groups
     for (const group of groupsData) {
         const createdGroup = await prisma.group.create({
-            data: group,
+            data: {
+                ...group,
+                userId: user.id
+            },
         })
         console.log(`Created group: ${createdGroup.name}`)
     }
@@ -100,7 +123,10 @@ async function main() {
     // Seed links
     for (const link of linksData) {
         const createdLink = await prisma.link.create({
-            data: link,
+            data: {
+                ...link,
+                userId: user.id
+            },
         })
         console.log(`Created link with id: ${createdLink.id}`)
     }

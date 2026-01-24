@@ -18,7 +18,11 @@ import { AddLinkDialog } from "@/components/add-link-dialog"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 import { HeroSectionDialog } from "@/components/hero-section-dialog"
 import { ThemeSelector } from "@/components/theme-selector"
-import { Video, Palette, ListMusic, BarChart3 } from "lucide-react"
+import { Video, Palette, ListMusic, BarChart3, LogOut } from "lucide-react" // Add LogOut
+import { logout } from "@/app/actions/auth" // Import logout action
+import { useRouter } from "next/navigation" // Import useRouter
+
+
 
 interface Group {
     id: string
@@ -44,6 +48,12 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
     const [isHeroSectionOpen, setIsHeroSectionOpen] = useState(false)
     const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false)
     const [profile, setProfile] = useState<any>(initialProfile)
+    const router = useRouter()
+
+    const handleLogout = async () => {
+        await logout()
+        router.push("/login")
+    }
 
     useEffect(() => {
         fetchProfile()
@@ -249,6 +259,9 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                         </Link>
                                         <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsThemeSelectorOpen(true)}>
                                             <Palette className="mr-2 h-4 w-4" /> Change Theme
+                                        </Button>
+                                        <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-red-400" onClick={handleLogout}>
+                                            <LogOut className="mr-2 h-4 w-4" /> Log Out
                                         </Button>
                                     </div>
                                 </div>
