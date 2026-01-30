@@ -45,6 +45,9 @@ export function Header() {
                     <Link href="#pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">
                         Pricing
                     </Link>
+                    <Link href="/u/lionelyu" className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors flex items-center gap-1.5">
+                        View Example
+                    </Link>
                     <div className="h-4 w-px bg-white/10 mx-2" />
                     <Link href="/login">
                         <Button variant="ghost" className="text-zinc-400 hover:text-white hover:bg-white/5">
@@ -89,6 +92,13 @@ export function Header() {
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             Pricing
+                        </Link>
+                        <Link
+                            href="/u/lionelyu"
+                            className="text-lg text-zinc-300"
+                            onClick={() => setMobileMenuOpen(false)}
+                        >
+                            View Example
                         </Link>
                         <div className="h-px w-full bg-white/10" />
                         <Link href="/login" onClick={() => setMobileMenuOpen(false)}>

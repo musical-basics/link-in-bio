@@ -64,6 +64,16 @@ export function HeroSection() {
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                     </Link>
+                    <Link href="/u/lionelyu">
+                        <Button
+                            variant="ghost"
+                            size="lg"
+                            className="text-zinc-400 hover:text-white hover:bg-white/5 px-8 py-6 text-lg rounded-full"
+                        >
+                            <Sparkles className="mr-2 h-5 w-5 text-amber-200" />
+                            View Example
+                        </Button>
+                    </Link>
                     <Button
                         variant="ghost"
                         size="lg"
@@ -102,7 +112,9 @@ export function HeroSection() {
                                 <div className="w-3 h-3 rounded-full bg-zinc-700" />
                             </div>
                             <div className="flex-1 text-center">
-                                <span className="text-xs text-zinc-500">musical.bio/lionelyu</span>
+                                <Link href="/u/lionelyu" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                                    musical.bio/lionelyu
+                                </Link>
                             </div>
                         </div>
                         <div className="relative aspect-[16/10] bg-gradient-to-b from-zinc-900 to-black p-8">
