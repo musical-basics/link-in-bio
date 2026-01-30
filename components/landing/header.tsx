@@ -45,7 +45,7 @@ export function Header() {
                     <Link href="#pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">
                         Pricing
                     </Link>
-                    <Link href="/u/lionelyu" className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors flex items-center gap-1.5">
+                    <Link href="/lionelyu" className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors flex items-center gap-1.5">
                         View Example
                     </Link>
                     <div className="h-4 w-px bg-white/10 mx-2" />
@@ -94,7 +94,7 @@ export function Header() {
                             Pricing
                         </Link>
                         <Link
-                            href="/u/lionelyu"
+                            href="/lionelyu"
                             className="text-lg text-zinc-300"
                             onClick={() => setMobileMenuOpen(false)}
                         >

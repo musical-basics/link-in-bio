@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Play, Sparkles } from "lucide-react"
+import { ArrowRight, Play, Sparkles, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
 export function HeroSection() {
@@ -64,16 +64,6 @@ export function HeroSection() {
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                     </Link>
-                    <Link href="/u/lionelyu">
-                        <Button
-                            variant="ghost"
-                            size="lg"
-                            className="text-zinc-400 hover:text-white hover:bg-white/5 px-8 py-6 text-lg rounded-full"
-                        >
-                            <Sparkles className="mr-2 h-5 w-5 text-amber-200" />
-                            View Example
-                        </Button>
-                    </Link>
                     <Button
                         variant="ghost"
                         size="lg"
@@ -84,12 +74,29 @@ export function HeroSection() {
                     </Button>
                 </motion.div>
 
+                {/* Reference Link */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-8"
+                >
+                    <Link
+                        href="/lionelyu"
+                        target="_blank"
+                        className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors border-b border-zinc-800 hover:border-zinc-400 pb-0.5"
+                    >
+                        <span>See a live example: <strong>musical.bio/lionelyu</strong></span>
+                        <ExternalLink className="w-3 h-3" />
+                    </Link>
+                </motion.div>
+
                 {/* Added Trust Indicator */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
-                    className="mt-6 text-xs text-zinc-500"
+                    className="mt-4 text-xs text-zinc-500"
                 >
                     No credit card required • Free forever plan available
                 </motion.p>
@@ -112,7 +119,11 @@ export function HeroSection() {
                                 <div className="w-3 h-3 rounded-full bg-zinc-700" />
                             </div>
                             <div className="flex-1 text-center">
-                                <Link href="/u/lionelyu" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                                <Link
+                                    href="/lionelyu"
+                                    target="_blank"
+                                    className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                                >
                                     musical.bio/lionelyu
                                 </Link>
                             </div>
