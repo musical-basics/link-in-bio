@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Play, Sparkles, ExternalLink } from "lucide-react"
+import { ArrowRight, Sparkles, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
 export function HeroSection() {
@@ -64,14 +64,6 @@ export function HeroSection() {
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
                     </Link>
-                    <Button
-                        variant="ghost"
-                        size="lg"
-                        className="text-zinc-400 hover:text-white hover:bg-white/5 px-8 py-6 text-lg rounded-full"
-                    >
-                        <Play className="mr-2 h-5 w-5" />
-                        Watch Demo
-                    </Button>
                 </motion.div>
 
                 {/* Reference Link */}
