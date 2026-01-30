@@ -26,9 +26,12 @@ async function getUser(email: string) {
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
+    session: { strategy: 'jwt' },
     providers: [
         Credentials({
             async authorize(credentials) {
+                console.log("1. Authorize called with:", credentials?.email);
+
                 const parsedCredentials = z
                     .object({ email: z.string().email(), password: z.string().min(6) })
                     .safeParse(credentials);
@@ -36,17 +39,25 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                 if (parsedCredentials.success) {
                     const { email, password } = parsedCredentials.data;
                     const user = await getUser(email);
-                    if (!user) return null;
+                    if (!user) {
+                        console.log("2. User not found in DB");
+                        return null;
+                    }
 
                     const passwordsMatch = await bcrypt.compare(password, user.password);
                     if (passwordsMatch) {
+                        console.log("3. Password match! Returning user.");
                         return {
                             id: user.id,
                             email: user.email,
                             name: user.profile?.name || user.username,
                             username: user.username,
                         };
+                    } else {
+                        console.log("3. Password Mismatch");
                     }
+                } else {
+                    console.log("1. Invalid Input format");
                 }
 
                 console.log('Invalid credentials');
