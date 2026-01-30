@@ -7,10 +7,11 @@ import bcrypt from 'bcrypt';
 
 async function getUser(email: string) {
     try {
+        const cleanEmail = email.trim().toLowerCase();
         const user = await prisma.user.findFirst({
             where: {
                 email: {
-                    equals: email,
+                    equals: cleanEmail,
                     mode: 'insensitive'
                 }
             },

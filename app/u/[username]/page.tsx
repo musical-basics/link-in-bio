@@ -16,9 +16,14 @@ interface UserPageProps {
 export default async function UserPage({ params }: UserPageProps) {
     const { username } = await params
 
-    // Find user by username
-    const user = await prisma.user.findUnique({
-        where: { username },
+    // Find user by username (Case Insensitive)
+    const user = await prisma.user.findFirst({
+        where: {
+            username: {
+                equals: username,
+                mode: 'insensitive'
+            }
+        },
         include: { profile: true },
     })
 
@@ -64,8 +69,13 @@ export default async function UserPage({ params }: UserPageProps) {
 export async function generateMetadata({ params }: UserPageProps) {
     const { username } = await params
 
-    const user = await prisma.user.findUnique({
-        where: { username },
+    const user = await prisma.user.findFirst({
+        where: {
+            username: {
+                equals: username,
+                mode: 'insensitive'
+            }
+        },
         include: { profile: true },
     })
 
