@@ -35,3 +35,10 @@ next-env.d.ts
 # prisma
 /prisma/*.db
 /prisma/*.db-journal
+
+# repomix
+/repomix-output.*
+
+# extra
+/old_data.sql
+/temp/

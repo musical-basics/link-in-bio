@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+.next/
+dist/
+out/
+build/
+.vercel/
+
+# Environment files
+.env*
+!.env.example
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE/System files
+.DS_Store
+.vscode/
+.idea/
+
+# Development/Testing tools
+.agent/
+.gemini/
+venv/
+__pycache__/
+*.pyc
+
+# Project specific exclusions
+temp/
+old_data.sql
+repomix-output.*
+migrate_storage.py
+debug_storage.py
+debug-db.ts
+generate-hash.js

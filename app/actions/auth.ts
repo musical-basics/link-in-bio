@@ -31,9 +31,9 @@ export async function authenticate(
 }
 
 export async function signup(formData: FormData) {
-    const email = formData.get('email') as string;
+    const email = (formData.get('email') as string || '').toLowerCase();
     const password = formData.get('password') as string;
-    const username = formData.get('username') as string;
+    const username = (formData.get('username') as string || '').toLowerCase();
     const name = formData.get('name') as string;
 
     // Validate input
