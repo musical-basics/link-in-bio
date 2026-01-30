@@ -13,6 +13,65 @@ import { Upload, Loader2 } from "lucide-react"
 import type { TimelineEvent } from "@prisma/client"
 import { getSupabase } from "@/lib/supabase"
 
+// Add this helper function outside the component
+const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = (event) => {
+            const img = new Image()
+            img.src = event.target?.result as string
+            img.onload = () => {
+                const canvas = document.createElement('canvas')
+                const MAX_WIDTH = 1920
+                const MAX_HEIGHT = 1080
+                let width = img.width
+                let height = img.height
+
+                // Calculate new dimensions while maintaining aspect ratio
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width
+                        width = MAX_WIDTH
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height
+                        height = MAX_HEIGHT
+                    }
+                }
+
+                canvas.width = width
+                canvas.height = height
+                const ctx = canvas.getContext('2d')
+
+                if (!ctx) {
+                    reject(new Error('Failed to get canvas context'))
+                    return
+                }
+
+                // Fill background with white (for transparent PNGs converting to JPEG)
+                ctx.fillStyle = '#FFFFFF'
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+                // Draw image
+                ctx.drawImage(img, 0, 0, width, height)
+
+                // Convert to blob (JPEG, 0.85 quality)
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(blob)
+                    } else {
+                        reject(new Error('Compression failed'))
+                    }
+                }, 'image/jpeg', 0.85)
+            }
+            img.onerror = (error) => reject(error)
+        }
+        reader.onerror = (error) => reject(error)
+    })
+}
+
 interface EventDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -79,21 +138,33 @@ export function EventDialog({ open, onOpenChange, event, userId }: EventDialogPr
         const file = e.target.files?.[0]
         if (!file) return
 
-        // 5MB limit
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image must be under 5MB")
+        // Increased limit to 25MB since we are compressing
+        if (file.size > 25 * 1024 * 1024) {
+            toast.error("File is too large (max 25MB)")
             return
         }
 
         setUploading(true)
         try {
+            // Compress image before upload
+            const compressedBlob = await compressImage(file)
+
+            // Convert Blob back to File for Supabase upload
+            const compressedFile = new File([compressedBlob], "image.jpg", {
+                type: "image/jpeg",
+                lastModified: Date.now()
+            })
+
             const supabase = getSupabase()
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+            // Always use .jpg extension since we converted to JPEG
+            const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`
 
             const { data, error } = await supabase.storage
                 .from('timeline-media')
-                .upload(fileName, file)
+                .upload(fileName, compressedFile, {
+                    cacheControl: '31536000',
+                    upsert: false
+                })
 
             if (error) {
                 console.error("Supabase upload error:", error)
@@ -109,7 +180,7 @@ export function EventDialog({ open, onOpenChange, event, userId }: EventDialogPr
                 mediaUrl: publicUrl,
                 mediaType: "image"
             })
-            toast.success("Image uploaded")
+            toast.success("Image uploaded & compressed")
         } catch (error) {
             console.error("Upload failed:", error)
             toast.error("Failed to upload image. Please try again.")
@@ -201,7 +272,7 @@ export function EventDialog({ open, onOpenChange, event, userId }: EventDialogPr
                                         disabled={uploading}
                                         onChange={handleFileUpload}
                                     />
-                                    <p className="mt-1 text-xs text-zinc-500">Max 2MB. Automatically sets type to "Image".</p>
+                                    <p className="mt-1 text-xs text-zinc-500">Max 25MB. Automatically compressed & converted to JPEG.</p>
                                 </div>
                             </div>
 
