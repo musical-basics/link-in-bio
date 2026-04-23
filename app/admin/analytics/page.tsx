@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
-import { ArrowUpRight, MousePointerClick, Eye, Clock, Percent } from "lucide-react"
+import { ArrowUpRight, MousePointerClick, Eye, Percent } from "lucide-react"
 
 export default function AnalyticsPage() {
     const [dateRange, setDateRange] = useState("7d")
@@ -52,6 +51,20 @@ export default function AnalyticsPage() {
                     </Tabs>
                 </div>
             </div>
+
+            {data?.errors?.length > 0 && (
+                <div className="rounded-md border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">
+                    <div className="font-medium mb-1">Analytics queries failed — numbers below may be wrong or zero.</div>
+                    <ul className="list-disc list-inside space-y-0.5 text-red-300">
+                        {data.errors.map((err: any, i: number) => (
+                            <li key={i}><span className="font-mono">{err.query}</span>: {err.status} — {err.detail}</li>
+                        ))}
+                    </ul>
+                    <div className="mt-2 text-xs text-red-400">
+                        Hit <span className="font-mono">/api/analytics/debug</span> for full diagnostics.
+                    </div>
+                </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="bg-zinc-900 border-zinc-800">
