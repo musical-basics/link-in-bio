@@ -26,10 +26,14 @@ export function LinkAnalyticsSheet({ link, open, onOpenChange }: Props) {
             .finally(() => setLoading(false))
     }, [open, link])
 
-    const chartData = (data?.daily || []).map(d => ({
-        name: new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-        clicks: d.clicks,
-    }))
+    const chartData = (data?.daily || []).map(d => {
+        const [y, m, day] = d.date.split("-").map(Number)
+        const localDate = new Date(y, m - 1, day)
+        return {
+            name: localDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+            clicks: d.clicks,
+        }
+    })
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>

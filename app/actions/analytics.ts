@@ -30,7 +30,7 @@ export async function getLinkAnalytics(linkId: string, days = 7): Promise<LinkAn
                             FROM events
                             WHERE event = 'link_clicked'
                               AND properties.link_id = '${linkId}'
-                              AND timestamp > now() - interval ${dayCount} day
+                              AND toDate(timestamp) >= toDate(now()) - interval ${dayCount - 1} day
                             GROUP BY day
                             ORDER BY day`,
                 },
@@ -51,8 +51,7 @@ export async function getLinkAnalytics(linkId: string, days = 7): Promise<LinkAn
         let total = 0
         const today = new Date()
         for (let i = dayCount - 1; i >= 0; i--) {
-            const d = new Date(today)
-            d.setUTCDate(today.getUTCDate() - i)
+            const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i))
             const key = d.toISOString().slice(0, 10)
             const c = counts.get(key) ?? 0
             daily.push({ date: key, clicks: c })
