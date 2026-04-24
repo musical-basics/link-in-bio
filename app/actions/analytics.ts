@@ -35,20 +35,28 @@ export async function getLinkAnalytics(linkId: string, days = 7): Promise<LinkAn
                             ORDER BY day`,
                 },
             }),
-            next: { revalidate: 60 },
+            cache: 'no-store',
         })
         if (!res.ok) {
             const body = await res.text()
             return { ...empty, error: `${res.status}: ${body.slice(0, 200)}` }
         }
         const data = await res.json()
-        const daily: { date: string; clicks: number }[] = []
-        let total = 0
+        const counts = new Map<string, number>()
         for (const row of data.results || []) {
             const [date, clicks] = row
-            const n = Number(clicks) || 0
-            daily.push({ date: String(date), clicks: n })
-            total += n
+            counts.set(String(date), Number(clicks) || 0)
+        }
+        const daily: { date: string; clicks: number }[] = []
+        let total = 0
+        const today = new Date()
+        for (let i = dayCount - 1; i >= 0; i--) {
+            const d = new Date(today)
+            d.setUTCDate(today.getUTCDate() - i)
+            const key = d.toISOString().slice(0, 10)
+            const c = counts.get(key) ?? 0
+            daily.push({ date: key, clicks: c })
+            total += c
         }
         return { daily, total }
     } catch (e) {
