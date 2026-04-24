@@ -1,6 +1,7 @@
 "use client"
 
 
+import { useState } from "react"
 import type { Link as LinkType } from "@/lib/data"
 import { BRAND_ICONS } from "@/components/brand-icons" // Correct placement
 import * as LucideIcons from "lucide-react"
@@ -11,6 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { GripVertical, Pencil, Trash2 } from "lucide-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { LinkAnalyticsSheet } from "@/components/link-analytics-sheet"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +35,7 @@ interface LinkRowProps {
 
 export function LinkRow({ link, onEdit, onDelete, onToggleActive, sortableId }: LinkRowProps) {
   const IconComponent = (LucideIcons[link.icon as keyof typeof LucideIcons] as LucideIcon) || LucideIcons.Link
+  const [analyticsOpen, setAnalyticsOpen] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sortableId || link.id })
 
@@ -87,8 +90,12 @@ export function LinkRow({ link, onEdit, onDelete, onToggleActive, sortableId }: 
         </div>
       )}
 
-      {/* Link Info */}
-      <div className="flex-1">
+      {/* Link Info — clickable to open analytics sheet */}
+      <button
+        type="button"
+        onClick={() => setAnalyticsOpen(true)}
+        className="flex-1 text-left rounded-md -mx-2 px-2 py-1 hover:bg-accent/60 transition-colors"
+      >
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-foreground">{link.title}</h3>
           <Badge variant="outline" className="text-xs">
@@ -97,7 +104,7 @@ export function LinkRow({ link, onEdit, onDelete, onToggleActive, sortableId }: 
         </div>
         <p className="text-sm text-muted-foreground">{link.subtitle}</p>
         <p className="text-xs text-muted-foreground/70">{link.url}</p>
-      </div>
+      </button>
 
       {/* Analytics Badge */}
       <Badge variant="secondary" className="shrink-0">
@@ -139,6 +146,12 @@ export function LinkRow({ link, onEdit, onDelete, onToggleActive, sortableId }: 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <LinkAnalyticsSheet
+        link={link}
+        open={analyticsOpen}
+        onOpenChange={setAnalyticsOpen}
+      />
     </div>
   )
 }
