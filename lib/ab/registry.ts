@@ -52,6 +52,9 @@ export interface AbRegistry {
 
 export const AB_COOKIE = "mb_ab"
 export const AB_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 days
+/** Set by middleware for admin viewers (logged in or AB_EXCLUDED_IPS match).
+ *  The client tracker sends no A/B events while it is present. */
+export const AB_ADMIN_COOKIE = "mb_ab_x"
 
 export const abRegistry: AbRegistry = {
     formats: [

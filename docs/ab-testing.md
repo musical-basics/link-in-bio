@@ -38,6 +38,23 @@ so a bad edit breaks the build instead of mis-routing traffic.
   historical data stays on the dashboard.
 - **Never reuse a retired id** — old analytics would pollute the new test.
 
+## Admin exclusion
+
+Admin traffic never enters the experiment:
+
+- **Logged-in sessions** are excluded automatically (any browser where you're
+  signed into /admin).
+- **`AB_EXCLUDED_IPS`** (Vercel env var, comma-separated) excludes devices
+  where you're not logged in — exact IPs (`73.92.14.5`) or prefixes ending in
+  `.` / `:` (`73.92.14.`, `2601:1c0:`).
+
+Excluded viewers get no random assignment, the middleware sets an `mb_ab_x`
+flag cookie, and the client tracker sends no A/B events (and unregisters any
+previously registered variant tags). The same IP list is also applied inside
+the PostHog scoring query, so past admin events are scrubbed retroactively.
+`?ab=2b` previews still render for excluded viewers — they're just never
+counted.
+
 ## Scoring (lib/ab/scoring.ts)
 
 Per session, capped so one hyperactive visitor can't buy the leaderboard:

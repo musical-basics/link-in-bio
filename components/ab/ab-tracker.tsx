@@ -19,7 +19,18 @@ export function AbTracker({ variantKey }: { variantKey: string | null }) {
     const posthog = usePostHog()
 
     useEffect(() => {
-        if (!posthog || !variantKey) return
+        if (!posthog) return
+
+        // Admin viewers (flagged by middleware via the mb_ab_x cookie) send no
+        // A/B events; also drop any variant super properties registered before
+        // they became excluded, so their link_clicked events stop carrying tags.
+        const isAdminViewer = document.cookie.split("; ").includes("mb_ab_x=1")
+        if (isAdminViewer || !variantKey) {
+            posthog.unregister("ab_variant")
+            posthog.unregister("ab_format")
+            posthog.unregister("ab_order")
+            return
+        }
         const m = KEY_RE.exec(variantKey)
 
         posthog.register({

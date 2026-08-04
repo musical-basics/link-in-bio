@@ -1,6 +1,25 @@
 import type { AbSessionRow } from "./scoring"
 
 /**
+ * HogQL filter mirroring the middleware's AB_EXCLUDED_IPS exclusion, so admin
+ * events are also scrubbed retroactively (events sent before the exclusion
+ * existed, or from clients with stale variant cookies).
+ */
+function excludedIpFilter(): string {
+    const entries = (process.env.AB_EXCLUDED_IPS ?? "")
+        .split(",")
+        .map((s) => s.trim().replace(/[^0-9a-fA-F.:]/g, ""))
+        .filter(Boolean)
+    if (entries.length === 0) return ""
+    const conds = entries.map((e) =>
+        e.endsWith(".") || e.endsWith(":")
+            ? `startsWith(toString(properties.$ip), '${e}')`
+            : `toString(properties.$ip) = '${e}'`,
+    )
+    return ` AND NOT (${conds.join(" OR ")})`
+}
+
+/**
  * Fetch per-session A/B rows from PostHog (same HogQL setup the per-link
  * analytics already use). One row per (variant, session) with pageview count,
  * link clicks, and total time on page.
@@ -32,7 +51,7 @@ export async function fetchAbSessionRows(days: number): Promise<{ rows: AbSessio
                             WHERE properties.ab_variant IS NOT NULL
                               AND properties.ab_variant != ''
                               AND event IN ('ab_page_view', 'ab_page_leave', 'link_clicked')
-                              AND timestamp >= now() - interval ${dayCount} day
+                              AND timestamp >= now() - interval ${dayCount} day${excludedIpFilter()}
                             GROUP BY variant, session`,
                 },
             }),
