@@ -18,7 +18,7 @@ import { AddLinkDialog } from "@/components/add-link-dialog"
 import { EditProfileDialog } from "@/components/edit-profile-dialog"
 import { HeroSectionDialog } from "@/components/hero-section-dialog"
 import { ThemeSelector } from "@/components/theme-selector"
-import { Video, Palette, ListMusic, BarChart3, LogOut } from "lucide-react" // Add LogOut
+import { Video, Palette, ListMusic, BarChart3, LogOut, FlaskConical } from "lucide-react" // Add LogOut
 import { logout } from "@/app/actions/auth" // Import logout action
 import { useRouter } from "next/navigation" // Import useRouter
 
@@ -255,6 +255,11 @@ export function AdminDashboard({ initialLinks, initialGroups, username, initialP
                                         <Link href="/admin/analytics" className="w-full">
                                             <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white">
                                                 <BarChart3 className="mr-2 h-4 w-4" /> View Analytics
+                                            </Button>
+                                        </Link>
+                                        <Link href="/admin/ab-tests" className="w-full">
+                                            <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white">
+                                                <FlaskConical className="mr-2 h-4 w-4" /> A/B Tests
                                             </Button>
                                         </Link>
                                         <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-white" onClick={() => setIsThemeSelectorOpen(true)}>

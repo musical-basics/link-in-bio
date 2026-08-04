@@ -126,3 +126,40 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* --- A/B formatting presets (lib/ab/registry.ts formats set styleKey) ---
+   Scoped overrides of the classic theme's utility classes so a format
+   variant can restyle the page without forking the theme components. */
+[data-ab-style="light"] .bg-black {
+  background-color: #f4f4f2;
+}
+[data-ab-style="light"] .bg-neutral-900 {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+[data-ab-style="light"] .bg-neutral-800 {
+  background-color: #f0efec;
+}
+[data-ab-style="light"] .hover\:bg-neutral-700:hover {
+  background-color: #e6e4df;
+}
+[data-ab-style="light"] .bg-neutral-700 {
+  background-color: #e6e4df;
+}
+[data-ab-style="light"] .text-white,
+[data-ab-style="light"] .hover\:text-white:hover {
+  color: #171717;
+}
+[data-ab-style="light"] .text-neutral-400 {
+  color: #57534e;
+}
+[data-ab-style="light"] .text-neutral-500 {
+  color: #78716c;
+}
+[data-ab-style="light"] .border-neutral-700 {
+  border-color: #d6d3ce;
+}
+/* Pill-shaped link buttons for the light format */
+[data-ab-style="light"] .rounded-lg {
+  border-radius: 1.25rem;
+}
