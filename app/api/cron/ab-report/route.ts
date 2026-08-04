@@ -45,7 +45,10 @@ export async function GET(req: Request) {
         })
     }
 
-    const sent = await emailAbReport(pdf, data)
+    // Cron-authorized test override, e.g. ?to=lionel@musicalbasics.com
+    // (useful while the Resend domain is unverified and can only reach the
+    // account owner's address).
+    const sent = await emailAbReport(pdf, data, url.searchParams.get("to") ?? undefined)
     const status = sent.ok ? 200 : 500
     return NextResponse.json(
         {

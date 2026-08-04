@@ -128,11 +128,15 @@ export async function buildAbReportPdf(data: AbReportData): Promise<Uint8Array> 
 }
 
 /** Email the PDF via Resend's HTTP API. */
-export async function emailAbReport(pdf: Uint8Array, data: AbReportData): Promise<{ ok: boolean; detail: string }> {
+export async function emailAbReport(
+    pdf: Uint8Array,
+    data: AbReportData,
+    toOverride?: string,
+): Promise<{ ok: boolean; detail: string }> {
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) return { ok: false, detail: "RESEND_API_KEY is not set" }
 
-    const to = process.env.AB_REPORT_TO || "support@musicalbasics.com"
+    const to = toOverride || process.env.AB_REPORT_TO || "support@musicalbasics.com"
     const from = process.env.AB_REPORT_FROM || "musical.bio reports <onboarding@resend.dev>"
     const dateStr = data.generatedAt.toISOString().slice(0, 10)
     const leader = data.daily.find((s) => s.sessions > 0) ?? data.weekly.find((s) => s.sessions > 0)
