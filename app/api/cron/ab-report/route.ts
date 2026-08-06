@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { fetchAbSessionRows } from "@/lib/ab/queries"
+import { fetchAbSessionRows, fetchTrafficStats } from "@/lib/ab/queries"
 import { computeVariantStats, rollUp } from "@/lib/ab/scoring"
 import { buildAbReportPdf, emailAbReport } from "@/lib/ab/report"
 
@@ -22,8 +22,13 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const [daily, weekly] = await Promise.all([fetchAbSessionRows(1), fetchAbSessionRows(7)])
-    const errors = [daily.error, weekly.error].filter(Boolean)
+    const [daily, weekly, dailyTraffic, weeklyTraffic] = await Promise.all([
+        fetchAbSessionRows(1),
+        fetchAbSessionRows(7),
+        fetchTrafficStats(1),
+        fetchTrafficStats(7),
+    ])
+    const errors = [daily.error, weekly.error, ...dailyTraffic.errors, ...weeklyTraffic.errors].filter(Boolean)
 
     const data = {
         generatedAt: new Date(),
@@ -31,6 +36,8 @@ export async function GET(req: Request) {
         weekly: computeVariantStats(weekly.rows),
         weeklyFormats: rollUp(weekly.rows, "format"),
         weeklyOrders: rollUp(weekly.rows, "order"),
+        dailyTraffic,
+        weeklyTraffic,
     }
 
     const pdf = await buildAbReportPdf(data)

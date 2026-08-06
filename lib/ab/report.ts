@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib"
 import { abRegistry, allVariants } from "./registry"
+import type { TrafficStats } from "./queries"
 import type { VariantStats } from "./scoring"
 
 export interface AbReportData {
@@ -8,6 +9,8 @@ export interface AbReportData {
     weekly: VariantStats[]
     weeklyFormats: VariantStats[]
     weeklyOrders: VariantStats[]
+    dailyTraffic: TrafficStats
+    weeklyTraffic: TrafficStats
 }
 
 const PAGE_W = 612 // US Letter
@@ -44,7 +47,7 @@ export async function buildAbReportPdf(data: AbReportData): Promise<Uint8Array> 
     }
 
     // Header
-    text("musical.bio — Daily A/B Test Report", MARGIN, 20, bold)
+    text("musical.bio — Traffic & A/B Test Report", MARGIN, 20, bold)
     y -= 24
     text(
         `Generated ${data.generatedAt.toISOString().slice(0, 16).replace("T", " ")} UTC`,
@@ -119,6 +122,57 @@ export async function buildAbReportPdf(data: AbReportData): Promise<Uint8Array> 
         y -= 26
     }
 
+    // --- Traffic section ---
+    ensureRoom(40)
+    text("Traffic", MARGIN, 16, bold)
+    y -= 20
+    const trafficLine = (label: string, t: TrafficStats) => {
+        ensureRoom(16)
+        text(
+            `${label}:  ${t.pageviews} pageviews  ·  ${t.visitors} visitors  ·  ${t.clicks} link clicks  ·  ` +
+            `${(t.ctr * 100).toFixed(1)}% CTR (clicks/views)`,
+            MARGIN, 10, font,
+        )
+        y -= 16
+    }
+    trafficLine("Last 24 hours", data.dailyTraffic)
+    trafficLine("Last 7 days", data.weeklyTraffic)
+    y -= 8
+
+    const drawNameValueTable = (title: string, rows: { name: string; value: number }[], valueLabel: string) => {
+        ensureRoom(40)
+        text(title, MARGIN, 12, bold)
+        y -= 16
+        if (rows.length === 0) {
+            text("No data in this window.", MARGIN, 9, font, rgb(0.5, 0.5, 0.55))
+            y -= 18
+            return
+        }
+        for (const r of rows) {
+            ensureRoom(14)
+            text(r.name.slice(0, 70), MARGIN + 8, 9, font)
+            const label = `${r.value} ${valueLabel}`
+            const w = font.widthOfTextAtSize(label, 9)
+            page.drawText(label, { x: PAGE_W - MARGIN - w, y, size: 9, font, color: rgb(0.1, 0.1, 0.12) })
+            y -= 13
+        }
+        y -= 12
+    }
+    drawNameValueTable(
+        "Top links (7 days)",
+        data.weeklyTraffic.topLinks.map((l) => ({ name: l.name, value: l.clicks })),
+        "clicks",
+    )
+    drawNameValueTable(
+        "Top referrers (7 days)",
+        data.weeklyTraffic.referrers.map((r) => ({ name: r.name, value: r.views })),
+        "views",
+    )
+
+    ensureRoom(30)
+    text("A/B testing", MARGIN, 16, bold)
+    y -= 22
+
     drawTable("Last 24 hours — variant leaderboard", data.daily)
     drawTable("Last 7 days — variant leaderboard", data.weekly)
     drawTable("Last 7 days — by formatting (number)", data.weeklyFormats)
@@ -150,16 +204,20 @@ export async function emailAbReport(
         body: JSON.stringify({
             from,
             to: [to],
-            subject: `A/B test report ${dateStr}${leader ? ` — leader: ${leader.key}` : ""}`,
+            subject: `musical.bio report ${dateStr}${leader ? ` — A/B leader: ${leader.key}` : ""}`,
             text:
-                `Daily A/B test report for musical.bio (${dateStr}).\n\n` +
+                `Traffic + A/B test report for musical.bio (${dateStr}).\n\n` +
+                `Traffic last 24h: ${data.dailyTraffic.pageviews} pageviews, ${data.dailyTraffic.visitors} visitors, ` +
+                `${data.dailyTraffic.clicks} link clicks (${(data.dailyTraffic.ctr * 100).toFixed(1)}% CTR).\n` +
+                `Traffic last 7d: ${data.weeklyTraffic.pageviews} pageviews, ${data.weeklyTraffic.visitors} visitors, ` +
+                `${data.weeklyTraffic.clicks} link clicks (${(data.weeklyTraffic.ctr * 100).toFixed(1)}% CTR).\n\n` +
                 (leader
                     ? `Best performing variant: ${leader.key} (${variantLabel(leader.key)}) with ` +
                       `${leader.avgPoints.toFixed(1)} avg points/session, ${(leader.ctr * 100).toFixed(1)}% CTR, ` +
                       `${Math.round(leader.avgDurationSeconds)}s avg time on page, ` +
                       `${(leader.bounceRate * 100).toFixed(1)}% bounce rate.\n\n`
-                    : "No sessions recorded yet.\n\n") +
-                "Full leaderboard attached as PDF. Live dashboard: /admin/ab-tests",
+                    : "No A/B sessions recorded yet.\n\n") +
+                "Full breakdown attached as PDF. Live dashboards: /admin/analytics and /admin/ab-tests",
             attachments: [
                 {
                     filename: `ab-report-${dateStr}.pdf`,

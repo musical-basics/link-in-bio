@@ -84,11 +84,14 @@ of PostHog with HogQL.
 `/admin/ab-tests` (linked from the admin sidebar) — Today / 7 / 30 day
 ranges, full leaderboard including inactive ("off") and retired keys.
 
-## Daily email report
+## Email report (every 12 hours)
 
-A Vercel cron (`vercel.json`, 07:00 UTC ≈ end of day US) hits
-`/api/cron/ab-report`, which builds a PDF (last 24h + 7-day leaderboards) and
-emails it to **support@musicalbasics.com** via Resend.
+A Vercel cron (`vercel.json`, 07:00 + 19:00 UTC) hits `/api/cron/ab-report`,
+which builds a PDF — site traffic (pageviews, visitors, clicks, CTR, top
+links, referrers) plus the A/B leaderboards (last 24h + 7-day) — and emails
+it via Resend. Recipient is `AB_REPORT_TO` (target: support@musicalbasics.com;
+requires a verified Resend domain — until then Resend only delivers to the
+account owner's address).
 
 Required Vercel env vars (see `.env.example`): `RESEND_API_KEY`,
 `CRON_SECRET`, optionally `AB_REPORT_TO` / `AB_REPORT_FROM` (the from-address
