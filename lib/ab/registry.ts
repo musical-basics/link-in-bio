@@ -63,7 +63,9 @@ export const abRegistry: AbRegistry = {
             name: "Owner default",
             theme: null, // whatever theme is set in the admin (currently classic dark)
             styleKey: null,
-            active: true,
+            // Retired 2026-08-14: worst format in two independent readings
+            // (42% CTR / 47% bounce vs 59% / 27% for the rest).
+            active: false,
         },
         {
             id: "2",
@@ -85,7 +87,9 @@ export const abRegistry: AbRegistry = {
             id: "a",
             name: "Owner order",
             pinKeywords: [],
-            active: true,
+            // Retired 2026-08-14: worst ordering in two independent readings
+            // (43% CTR / 48% bounce vs 60% / 25% for the rest).
+            active: false,
         },
         {
             id: "b",
