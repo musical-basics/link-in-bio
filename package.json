@@ -7,7 +7,7 @@
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
-    "test": "node --test --experimental-strip-types 'lib/**/*.test.ts'"
+    "test": "node --test --test-concurrency=1 --experimental-strip-types 'lib/**/*.test.ts'"
   },
   "dependencies": {
     "@dnd-kit/core": "latest",

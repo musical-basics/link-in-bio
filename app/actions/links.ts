@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth-utils'
+import { OwnerError, updateOwnedLink } from '@/lib/owner/store'
 
 export async function getLinks(userId?: string) {
     try {
@@ -27,42 +28,18 @@ export async function updateLink(id: string, data: any) {
     try {
         const user = await requireAuth()
 
-        // Verify link belongs to user before updating
-        const link = await prisma.link.findFirst({
-            where: { id, userId: user.id },
-        })
-
-        if (!link) {
+        // Ownership check, updatable-field whitelist and the 5MB thumbnail limit
+        // are shared with the owner API (lib/owner/store.ts).
+        let updatedLink
+        try {
+            updatedLink = await updateOwnedLink(prisma, user.id, id, data)
+        } catch (error) {
+            if (error instanceof OwnerError) return { success: false, error: error.message }
+            throw error
+        }
+        if (!updatedLink) {
             return { success: false, error: 'Link not found or unauthorized' }
         }
-
-        // Extract only updatable fields to avoid Prisma errors
-        const updateData: any = {}
-        if (data.title !== undefined) updateData.title = data.title
-        if (data.subtitle !== undefined) updateData.subtitle = data.subtitle
-        if (data.url !== undefined) updateData.url = data.url
-        if (data.icon !== undefined) updateData.icon = data.icon
-        if (data.group !== undefined) updateData.group = data.group
-        if (data.order !== undefined) updateData.order = data.order
-        if (data.isActive !== undefined) updateData.isActive = data.isActive
-        if (data.layout !== undefined) updateData.layout = data.layout
-
-        // Handle thumbnail with size validation (5MB limit)
-        if (data.thumbnail !== undefined) {
-            if (data.thumbnail && data.thumbnail.startsWith('data:image')) {
-                const base64Length = data.thumbnail.length
-                const estimatedSizeInMB = (base64Length * 0.75) / (1024 * 1024)
-                if (estimatedSizeInMB > 5) {
-                    return { success: false, error: 'Thumbnail is too large. Please use an image under 5MB.' }
-                }
-            }
-            updateData.thumbnail = data.thumbnail
-        }
-
-        const updatedLink = await prisma.link.update({
-            where: { id },
-            data: updateData,
-        })
         revalidatePath('/')
         revalidatePath('/admin')
         revalidatePath(`/u/${user.username}`)
