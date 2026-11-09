@@ -7,7 +7,8 @@
  * Credentials come from the environment, by name, never from arguments:
  *   MB_OWNER_EMAIL     account email (default: yulionel829@gmail.com)
  *   MB_OWNER_PASSWORD  account password (falls back to ADMIN_PASSWORD)
- *   MB_BASE_URL        default https://musical.bio
+ *   MB_BASE_URL        default https://www.musical.bio (musical.bio redirects there,
+ *                      and a redirect to another host drops the credentials)
  *
  * Examples:
  *   scripts/owner.mjs GET /                         # profile, groups, links (ids, order)
@@ -33,7 +34,7 @@ if (!password) {
     console.error('Set MB_OWNER_PASSWORD (or ADMIN_PASSWORD) in the environment, e.g. node --env-file=.env.local …');
     process.exit(2);
 }
-const base = (process.env.MB_BASE_URL || 'https://musical.bio').replace(/\/+$/, '');
+const base = (process.env.MB_BASE_URL || 'https://www.musical.bio').replace(/\/+$/, '');
 
 if (body !== undefined) {
     try {
@@ -52,7 +53,12 @@ const res = await fetch(url, {
         ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
     },
     body,
+    redirect: 'manual',
 });
+if (res.status >= 300 && res.status < 400) {
+    console.error(`${url} redirects to ${res.headers.get('location')}; set MB_BASE_URL to the final host (credentials are not sent across a redirect).`);
+    process.exit(1);
+}
 const text = await res.text();
 let out = text;
 try {

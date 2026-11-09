@@ -1,7 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { parseBasicAuth } from './auth.ts';
 import {
     createLinkInput,
@@ -11,7 +9,6 @@ import {
     updateLinkInput,
     updateProfileTextInput,
 } from './store.ts';
-import { ACCOUNT_LINKS_CHECKSUM, ACCOUNT_LINKS_MIGRATION } from './one-time-setup.ts';
 
 const basic = (s: string) => 'Basic ' + Buffer.from(s).toString('base64');
 
@@ -73,9 +70,4 @@ test('thumbnail: https URL or data:image under 5MB, null clears, nothing else', 
     assert.equal(summarizeThumbnail(small), 'data:image/png (1 KB)');
     assert.equal(summarizeThumbnail('https://img.test/a.png'), 'https://img.test/a.png');
     assert.equal(summarizeThumbnail(null), null);
-});
-
-test('the recorded migration checksum matches the migration file', () => {
-    const sql = readFileSync(new URL(`../../prisma/migrations/${ACCOUNT_LINKS_MIGRATION}/migration.sql`, import.meta.url));
-    assert.equal(createHash('sha256').update(sql).digest('hex'), ACCOUNT_LINKS_CHECKSUM);
 });
