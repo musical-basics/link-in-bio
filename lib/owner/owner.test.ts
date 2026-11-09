@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { parseBasicAuth } from './auth.ts';
-import { createLinkInput, pickLinkUpdate, reorderInput, updateLinkInput, updateProfileTextInput } from './store.ts';
+import {
+    createLinkInput,
+    pickLinkUpdate,
+    reorderInput,
+    summarizeThumbnail,
+    updateLinkInput,
+    updateProfileTextInput,
+} from './store.ts';
 import { ACCOUNT_LINKS_CHECKSUM, ACCOUNT_LINKS_MIGRATION } from './one-time-setup.ts';
 
 const basic = (s: string) => 'Basic ' + Buffer.from(s).toString('base64');
@@ -47,6 +54,25 @@ test('pickLinkUpdate keeps the admin rules: whitelist and the 5MB thumbnail limi
     const big = 'data:image/png;base64,' + 'A'.repeat(7 * 1024 * 1024);
     assert.ok('error' in pickLinkUpdate({ thumbnail: big }));
     assert.deepEqual(pickLinkUpdate({ thumbnail: null }), { data: { thumbnail: null } });
+});
+
+test('thumbnail: https URL or data:image under 5MB, null clears, nothing else', () => {
+    const base = { title: 'x', url: 'https://a.test', group: 'Work' };
+    assert.equal(createLinkInput.parse({ ...base, thumbnail: 'https://img.test/a.png' }).thumbnail, 'https://img.test/a.png');
+    const small = 'data:image/png;base64,' + 'A'.repeat(1000);
+    assert.equal(createLinkInput.parse({ ...base, thumbnail: small }).thumbnail, small);
+    assert.equal(updateLinkInput.parse({ thumbnail: null }).thumbnail, null);
+
+    const big = 'data:image/png;base64,' + 'A'.repeat(7 * 1024 * 1024);
+    const tooBig = updateLinkInput.safeParse({ thumbnail: big });
+    assert.equal(tooBig.success, false);
+    assert.match(JSON.stringify(tooBig.error?.issues), /under 5MB/);
+    for (const bad of ['http://img.test/a.png', 'javascript:alert(1)', 'data:text/html,<script>', 'img.png', '']) {
+        assert.equal(createLinkInput.safeParse({ ...base, thumbnail: bad }).success, false, bad);
+    }
+    assert.equal(summarizeThumbnail(small), 'data:image/png (1 KB)');
+    assert.equal(summarizeThumbnail('https://img.test/a.png'), 'https://img.test/a.png');
+    assert.equal(summarizeThumbnail(null), null);
 });
 
 test('the recorded migration checksum matches the migration file', () => {

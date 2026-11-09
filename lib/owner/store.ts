@@ -32,6 +32,20 @@ const url = z
 const order = z.number().int().min(-100000).max(100000);
 const layout = z.enum(['classic', 'featured']);
 
+/** The admin's rule: an inline data-URL thumbnail must be under 5MB. */
+export const THUMBNAIL_TOO_LARGE = 'Thumbnail is too large. Please use an image under 5MB.';
+export function isThumbnailTooLarge(thumbnail: unknown): boolean {
+    if (typeof thumbnail !== 'string' || !thumbnail.startsWith('data:image')) return false;
+    return (thumbnail.length * 0.75) / (1024 * 1024) > 5;
+}
+/** An https:// image URL or a data:image/… URL under 5MB; null clears it. */
+const thumbnail = z
+    .string()
+    .trim()
+    .refine((t) => /^https:\/\//i.test(t) || /^data:image\/[a-z0-9.+-]+[;,]/i.test(t), 'thumbnail must be an https:// URL or a data:image/… URL')
+    .refine((t) => !isThumbnailTooLarge(t), THUMBNAIL_TOO_LARGE)
+    .nullable();
+
 export const createLinkInput = z
     .object({
         title: text(200),
@@ -41,6 +55,7 @@ export const createLinkInput = z
         icon: text(64).default('Link'),
         layout: layout.default('classic'),
         isActive: z.boolean().default(true),
+        thumbnail: thumbnail.optional(),
         /** Explicit position; default: after every existing link. Nothing else moves. */
         order: order.optional(),
     })
@@ -55,6 +70,7 @@ export const updateLinkInput = z
         icon: text(64),
         layout,
         isActive: z.boolean(),
+        thumbnail,
         order,
     })
     .partial()
@@ -105,10 +121,7 @@ export function pickLinkUpdate(data: Record<string, any>): { data: Record<string
         if (data[key] !== undefined) updateData[key] = data[key];
     }
     if (data.thumbnail !== undefined) {
-        if (data.thumbnail && String(data.thumbnail).startsWith('data:image')) {
-            const estimatedSizeInMB = (String(data.thumbnail).length * 0.75) / (1024 * 1024);
-            if (estimatedSizeInMB > 5) return { error: 'Thumbnail is too large. Please use an image under 5MB.' };
-        }
+        if (isThumbnailTooLarge(data.thumbnail)) return { error: THUMBNAIL_TOO_LARGE };
         updateData.thumbnail = data.thumbnail;
     }
     return { data: updateData };
@@ -143,10 +156,17 @@ export async function getOwnerSnapshot(db: Db, userId: string) {
         db.link.findMany({
             where: { userId },
             orderBy: { order: 'asc' },
-            select: { id: true, title: true, subtitle: true, url: true, icon: true, group: true, layout: true, isActive: true, order: true },
+            select: { id: true, title: true, subtitle: true, url: true, icon: true, group: true, layout: true, isActive: true, order: true, thumbnail: true },
         }),
     ]);
-    return { profile, groups, links };
+    return { profile, groups, links: links.map((l) => ({ ...l, thumbnail: summarizeThumbnail(l.thumbnail) })) };
+}
+
+/** URLs as-is; inline images as "data:image/png (120 KB)" so listings stay small. */
+export function summarizeThumbnail(thumbnail: string | null): string | null {
+    if (!thumbnail?.startsWith('data:')) return thumbnail;
+    const type = /^data:([^;,]+)/.exec(thumbnail)?.[1] ?? 'unknown';
+    return `data:${type} (${Math.round((thumbnail.length * 0.75) / 1024)} KB)`;
 }
 
 async function assertGroupExists(db: Db, userId: string, name: string) {
@@ -171,6 +191,7 @@ export async function createLink(db: Db, userId: string, input: z.infer<typeof c
             icon: input.icon,
             layout: input.layout,
             isActive: input.isActive,
+            thumbnail: input.thumbnail ?? null,
             order: input.order ?? (await nextOrder(db, 'link', userId)),
         },
     });

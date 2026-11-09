@@ -160,6 +160,20 @@ describe('owner API (database)', { skip: !url && 'TEST_DATABASE_URL not set' }, 
             // Eve's "Work" group and links are untouched
             assert.equal(await db.link.count({ where: { userId: eve.id, group: 'Work' } }), 1);
         });
+        test('thumbnail on create and update, cleared with null, summarized in the listing', async () => {
+            const link = await createLink(db, ada.id, {
+                title: 'Portfolio', url: 'https://p.test', group: 'Work', icon: 'Link', layout: 'classic', isActive: true,
+                thumbnail: 'https://img.test/p.png',
+            });
+            assert.equal(link.thumbnail, 'https://img.test/p.png');
+            const inline = 'data:image/png;base64,' + 'A'.repeat(4096);
+            assert.equal((await updateLink(db, ada.id, link.id, { thumbnail: inline })).thumbnail, inline);
+            const listed = (await getOwnerSnapshot(db, ada.id)).links.find((l) => l.id === link.id);
+            assert.equal(listed?.thumbnail, 'data:image/png (3 KB)');
+            assert.equal((await updateLink(db, ada.id, link.id, { thumbnail: null })).thumbnail, null);
+            // another user's link still 404s with a thumbnail payload
+            await assert.rejects(updateLink(db, ada.id, eveLink.id, { thumbnail: 'https://img.test/x.png' }), (e: unknown) => e instanceof OwnerError && e.status === 404);
+        });
         test('deactivate and profile text', async () => {
             const [a] = (await getOwnerSnapshot(db, ada.id)).links;
             assert.equal((await updateLink(db, ada.id, a.id, { isActive: false })).isActive, false);
