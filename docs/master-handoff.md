@@ -56,3 +56,7 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   (inbox + Cloudflare check) → Lionel todo #61. Test user stays (no delete path for passwordless users yet).
 - 11-09: Landed 247332e (friendly /login errors; pages.error=/login) and b64bb94 (TikTok icon black in light style).
   Obsolete branch feat/portfolio-link-script left in place (deletion needs Lionel's OK).
+- 11-09: Brief #85 (Lionel: close the A/B test; are results invalid?). Measured: order b never pinned anything;
+  format 2 (Cinematic) beat 3 (+0.74 pts, CI excludes 0; bounce −7.4 pts); order b vs c = noise. Closed in 22a96df:
+  no assignment/tagging, owner's own theme+order (Lionel's = Cinematic), admin-only ?ab= previews, dashboard keeps
+  history, 12-hour email keeps traffic. Also fixed HogQL 100-row cap (30-day dashboard had been truncated).
