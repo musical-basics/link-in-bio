@@ -4,6 +4,7 @@ import {
     buildNewUserData,
     DEFAULT_BIO,
     FALLBACK_USERNAME,
+    isClerkDefaultAvatar,
     normalizeUpProfile,
     pickAvailableUsername,
     slugifyUsername,
@@ -52,6 +53,19 @@ test('normalizeUpProfile drops non-https pictures and requires a subject', () =>
     assert.equal(normalizeUpProfile({ sub: 'u1', picture: 'javascript:alert(1)' }).imageUrl, null);
     assert.equal(normalizeUpProfile({ sub: 'u1', picture: 'http://x.test/a.png' }).imageUrl, null);
     assert.throws(() => normalizeUpProfile({ email: 'a@b.c' }));
+});
+
+const clerkImg = (payload: object) => `https://img.clerk.com/${Buffer.from(JSON.stringify(payload)).toString('base64url')}`;
+
+test("Clerk's generated default avatar is not copied; an uploaded photo is", () => {
+    const generated = clerkImg({ type: 'default', iid: 'ins_1', rid: 'user_1', initials: 'SL' });
+    const uploaded = clerkImg({ type: 'proxy', src: 'https://images.clerk.dev/uploaded/img_1' });
+    assert.equal(isClerkDefaultAvatar(generated), true);
+    assert.equal(isClerkDefaultAvatar(uploaded), false);
+    assert.equal(isClerkDefaultAvatar('https://img.clerk.com/not-base64-json'), false);
+    assert.equal(isClerkDefaultAvatar('https://example.com/' + generated.split('/').pop()), false);
+    assert.equal(normalizeUpProfile({ sub: 'u1', picture: generated }).imageUrl, null);
+    assert.equal(normalizeUpProfile({ sub: 'u1', picture: uploaded }).imageUrl, uploaded);
 });
 
 test('slugifyUsername keeps the signup character set', () => {
