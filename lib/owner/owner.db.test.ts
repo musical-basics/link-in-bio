@@ -1,7 +1,7 @@
 /**
  * Owner API against a real Postgres. Skipped unless TEST_DATABASE_URL points
- * at a THROWAWAY database with the migrations applied: it deletes rows and
- * alters the schema. Never point it at production.
+ * at a THROWAWAY database with the migrations applied: it deletes rows.
+ * Never point it at production.
  */
 import { after, before, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,14 +19,6 @@ import {
     updateLink,
     updateProfileText,
 } from './store.ts';
-import {
-    ACCOUNT_LINKS_CHECKSUM,
-    ACCOUNT_LINKS_MIGRATION,
-    applyAccountLinksMigration,
-    inspectDatabase,
-    OWNER_EMAIL,
-    setOwnerPassword,
-} from './one-time-setup.ts';
 
 const url = process.env.TEST_DATABASE_URL;
 const basic = (email: string, password: string) => 'Basic ' + Buffer.from(`${email}:${password}`).toString('base64');
@@ -179,66 +171,6 @@ describe('owner API (database)', { skip: !url && 'TEST_DATABASE_URL not set' }, 
             assert.equal((await updateLink(db, ada.id, a.id, { isActive: false })).isActive, false);
             const profile = await updateProfileText(db, ada.id, { bio: 'Pianist.' });
             assert.equal(profile.bio, 'Pianist.');
-        });
-    });
-
-    describe('one-time setup', () => {
-        test('set-password: owner only, then login works with the new password', async () => {
-            const owner = await db.user.create({ data: { email: 'YuLionel829@gmail.com', username: 'lionelyu', password: 'old' } });
-            assert.deepEqual(await setOwnerPassword(db, 'ada@example.com', 'new-password'), { ok: false, error: 'Only the owner account can be changed here' });
-            assert.deepEqual(await setOwnerPassword(db, OWNER_EMAIL, '123'), { ok: false, error: 'Password must be 6 to 200 characters' });
-            assert.deepEqual(await setOwnerPassword(db, OWNER_EMAIL.toUpperCase(), 'new-password'), { ok: true });
-            const stored = await db.user.findUniqueOrThrow({ where: { id: owner.id } });
-            assert.ok(stored.password?.startsWith('$2b$10$'));
-            assert.ok((await authenticateOwner(db, basic(OWNER_EMAIL, 'new-password')))?.id === owner.id);
-            // Ada untouched
-            assert.ok(await authenticateOwner(db, basic('ada@example.com', 'ada-password')));
-        });
-
-        test('apply-migration is idempotent and records the history like prisma migrate', async () => {
-            // Put the database back to "before add_account_links".
-            await db.user.deleteMany({});
-            await db.$executeRawUnsafe(`DROP TABLE "Account"`);
-            await db.$executeRawUnsafe(`ALTER TABLE "User" ALTER COLUMN "password" SET NOT NULL`);
-            await db.$executeRawUnsafe(`DELETE FROM _prisma_migrations WHERE migration_name = '${ACCOUNT_LINKS_MIGRATION}'`);
-            const pre = await inspectDatabase(db);
-            assert.equal(pre.passwordNullable, false);
-            assert.equal(pre.accountTable, false);
-            assert.equal(pre.earlierRecorded, true);
-            assert.equal(pre.accountLinksRecorded, false);
-
-            const first = await applyAccountLinksMigration(db);
-            assert.deepEqual(first.steps, [
-                'User.password made nullable',
-                'Account table created',
-                'index Account_userId_idx created',
-                'index Account_provider_providerAccountId_key created',
-                'index Account_userId_provider_key created',
-                'foreign key Account_userId_fkey added',
-            ]);
-            assert.equal(first.history, 'recorded in _prisma_migrations');
-            assert.equal(first.after.accountLinksRecorded, true);
-            const [row] = await db.$queryRawUnsafe<{ checksum: string; applied_steps_count: number }[]>(
-                `SELECT checksum, applied_steps_count FROM _prisma_migrations WHERE migration_name = '${ACCOUNT_LINKS_MIGRATION}'`,
-            );
-            assert.deepEqual(row, { checksum: ACCOUNT_LINKS_CHECKSUM, applied_steps_count: 1 });
-
-            const second = await applyAccountLinksMigration(db);
-            assert.deepEqual(second.steps, ['nothing to apply']);
-            assert.equal(second.history, 'already recorded');
-        });
-
-        test('apply-migration without a _prisma_migrations table applies the SQL and records nothing', async () => {
-            await db.$executeRawUnsafe(`DROP TABLE "Account"`);
-            await db.$executeRawUnsafe(`ALTER TABLE _prisma_migrations RENAME TO _prisma_migrations_hidden`);
-            try {
-                const result = await applyAccountLinksMigration(db);
-                assert.ok(result.steps.includes('Account table created'));
-                assert.equal(result.history, 'no _prisma_migrations table: SQL applied, nothing recorded');
-                assert.equal(result.after.historyTable, false);
-            } finally {
-                await db.$executeRawUnsafe(`ALTER TABLE _prisma_migrations_hidden RENAME TO _prisma_migrations`);
-            }
         });
     });
 });
