@@ -7,7 +7,7 @@ A new manager reads this first. Manager session: `bio-manager`. Hub key: `bio` (
 | Name | Session id | Worktree | Owns | Current task |
 | --- | --- | --- | --- | --- |
 | bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | Brief #45: Portfolio link at the bottom of musical.bio/lionelyu |
-| bio-accounts | 6c7bbe8f | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema | Brief #47: Sign in with Ultimate Pianist, part 1 |
+| bio-accounts | e651243f (copy of 6c7bbe8f-8bc9-48c1-8d02-93a57401869a, started with --effort high) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | Brief #121: UP photo didn't carry over |
 
 Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermissions --model claude-opus-5-5 --effort high "<brief>"`.
 `ListAgents` before any resume; a listed worker is alive, so SendMessage it.
@@ -60,3 +60,6 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   format 2 (Cinematic) beat 3 (+0.74 pts, CI excludes 0; bounce −7.4 pts); order b vs c = noise. Closed in 22a96df:
   no assignment/tagging, owner's own theme+order (Lionel's = Cinematic), admin-only ?ab= previews, dashboard keeps
   history, 12-hour email keeps traffic. Also fixed HogQL 100-row cap (30-day dashboard had been truncated).
+- 11-09: Brief #121: Lionel's real UP test created one bio (`djsputty`; account email is a real person's — keep out of
+  git). Name + starter page OK; photo empty (ID token lacked a usable picture?). bio-accounts resumed to fix
+  (userinfo fallback + backfill empty image on sign-in). Then one todo: Lionel signs in again → proves photo + reuse.
