@@ -5,19 +5,31 @@
  * username that merely starts with one ("ursula", "apiary", "administrator")
  * still gets its bio page.
  */
-import { describe, test } from 'node:test';
+import { before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import pathMatch from 'next/dist/shared/lib/router/utils/path-match.js';
 import nextConfig from '../../next.config.mjs';
 
+type Rule = { source: string; destination: string };
+type Matcher = (pathname: string) => false | Record<string, string>;
+
 const { getPathMatch } = pathMatch as unknown as {
-    getPathMatch: (path: string, opts: object) => (pathname: string) => false | Record<string, string>;
+    getPathMatch: (path: string, opts: object) => Matcher;
 };
 
-const rewrites = (await nextConfig.rewrites()) as { source: string; destination: string }[];
-const usernameRule = rewrites.find((r) => r.destination === '/u/:username');
-assert.ok(usernameRule, 'no /:username → /u/:username rewrite in next.config.mjs');
-const match = getPathMatch(usernameRule.source, { strict: true, removeUnnamedParams: true, sensitive: false });
+// Filled in before() (no top-level await: tsconfig targets ES6).
+let rewrites: Rule[] = [];
+let usernameRule!: Rule;
+let match!: Matcher;
+
+before(async () => {
+    assert.ok(nextConfig.rewrites, 'next.config.mjs defines no rewrites()');
+    rewrites = (await nextConfig.rewrites()) as Rule[];
+    const rule = rewrites.find((r) => r.destination === '/u/:username');
+    assert.ok(rule, 'no /:username → /u/:username rewrite in next.config.mjs');
+    usernameRule = rule;
+    match = getPathMatch(rule.source, { strict: true, removeUnnamedParams: true, sensitive: false });
+});
 
 describe('/:username rewrite', () => {
     const rewritten = [
