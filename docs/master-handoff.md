@@ -22,6 +22,15 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   people arriving from Ultimate Pianist are offered an auto-created bio (need #25). Depends on Ultimate Pianist's
   sign-in, which its manager is designing; anything needed from that side goes through the commander.
 
+## Facts that cost time
+
+- The checkout's `.env` DATABASE_URL is a local Postgres (localhost:5432), not production. The production Supabase
+  pooler is unreachable from this Mac (outbound Postgres blocked). Production data changes go through the admin
+  (Lionel signs in) or a deployed route, never a local script. Workers don't sign in with his password.
+
 ## Log
 
 - 11-09: Onboarded (briefs #6, #18, #40). Briefed bio-site (#45) and bio-accounts (#47).
+- 11-09: UP sign-in contract received (#49); callback https://musical.bio/api/auth/callback/ultimatepianist, env
+  `AUTH_ULTIMATEPIANIST_ID` / `_SECRET`. Portfolio link blocked on DB access → Lionel todo #51; bio-site waits to
+  verify. Variant b pins nothing → decision #52.
