@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 /**
  * TEMPORARY (brief #61): delete this route right after it has been used once.
  *
- * POST with `Authorization: Bearer <CRON_SECRET>` and a JSON body:
+ * POST with `Authorization: Bearer <ONE_TIME_SETUP_SECRET>` and a JSON body:
  *   {"action": "inspect"}                         read-only look at the schema and migration history
  *   {"action": "apply-migration"}                 idempotent add_account_links + history record
  *   {"action": "set-password", "email", "password"}  owner account only
@@ -16,7 +16,8 @@ export const dynamic = 'force-dynamic';
  */
 
 function bearerOk(header: string | null): boolean {
-    const secret = process.env.CRON_SECRET;
+    // A dedicated throwaway secret (Production only), removed together with this route.
+    const secret = process.env.ONE_TIME_SETUP_SECRET;
     if (!secret || !header?.startsWith('Bearer ')) return false;
     const a = createHash('sha256').update(header.slice(7)).digest();
     const b = createHash('sha256').update(secret).digest();
