@@ -1,11 +1,12 @@
 import { cache } from "react"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { notFound } from "next/navigation"
 import { PublicProfile } from "@/components/public-profile"
 import { AbTracker } from "@/components/ab/ab-tracker"
 import { Link } from "@/lib/data"
 import { prisma } from "@/lib/prisma"
-import { AB_COOKIE, resolveVariant } from "@/lib/ab/registry"
+import { AB_COOKIE, isTestClosed, resolveVariant } from "@/lib/ab/registry"
+import { AB_PREVIEW_HEADER } from "@/lib/ab/assignment"
 import { applyLinkOrder } from "@/lib/ab/order"
 
 export const dynamic = "force-dynamic"
@@ -37,14 +38,19 @@ const getUserPageData = cache(async (username: string) =>
 export default async function UserPage({ params }: UserPageProps) {
     const { username } = await params
 
-    const [user, cookieStore] = await Promise.all([getUserPageData(username), cookies()])
+    const [user, cookieStore, headerStore] = await Promise.all([getUserPageData(username), cookies(), headers()])
 
     if (!user || !user.profile) {
         notFound()
     }
 
-    // A/B variant (assigned by middleware): number = formatting, letter = link order
-    const variant = resolveVariant(cookieStore.get(AB_COOKIE)?.value)
+    // A/B variant (assigned by middleware): number = formatting, letter = link order.
+    // Once the test is closed, only an admin ?ab= preview (header set by the
+    // middleware) renders a variant; everyone else gets the owner's own page.
+    const closed = isTestClosed()
+    const variant = closed
+        ? resolveVariant(headerStore.get(AB_PREVIEW_HEADER))
+        : resolveVariant(cookieStore.get(AB_COOKIE)?.value)
     const { links, groups } = applyLinkOrder(user.links as Link[], user.groups, variant?.order)
 
     const profileData = {
@@ -66,7 +72,8 @@ export default async function UserPage({ params }: UserPageProps) {
 
     return (
         <>
-            <AbTracker variantKey={variant?.key ?? null} />
+            {/* null = no A/B events; also unregisters a returning visitor's ab_variant tag */}
+            <AbTracker variantKey={closed ? null : variant?.key ?? null} />
             <PublicProfile
                 initialLinks={links}
                 initialGroups={groups as any}

@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server"
 import { fetchAbSessionRows, fetchTrafficStats } from "@/lib/ab/queries"
-import { computeVariantStats, rollUp } from "@/lib/ab/scoring"
+import { computeVariantStats, rollUp, type AbSessionRow } from "@/lib/ab/scoring"
+import { abRegistry } from "@/lib/ab/registry"
 import { buildAbReportPdf, emailAbReport } from "@/lib/ab/report"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 /**
- * Daily A/B report cron (see vercel.json). Computes the last-24h and 7-day
- * leaderboards, renders them to a PDF, and emails it to support@musicalbasics.com.
+ * 12-hourly report cron (see vercel.json). Site traffic (24h + 7 days), plus the
+ * A/B leaderboards while the test runs (one "closed" line after), rendered to a
+ * PDF and emailed to support@musicalbasics.com.
  *
  * Vercel calls this with `Authorization: Bearer ${CRON_SECRET}` when the
  * CRON_SECRET env var is set. Preview it manually in the browser with
@@ -22,9 +24,13 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Once the A/B test is closed the report keeps site traffic and replaces the
+    // leaderboards with one line (lib/ab/report.ts abSection), so skip those queries.
+    const closedOn = abRegistry.closedOn
+    const noRows = Promise.resolve({ rows: [] as AbSessionRow[], error: undefined as string | undefined })
     const [daily, weekly, dailyTraffic, weeklyTraffic] = await Promise.all([
-        fetchAbSessionRows(1),
-        fetchAbSessionRows(7),
+        closedOn ? noRows : fetchAbSessionRows(1),
+        closedOn ? noRows : fetchAbSessionRows(7),
         fetchTrafficStats(1),
         fetchTrafficStats(7),
     ])
@@ -32,6 +38,7 @@ export async function GET(req: Request) {
 
     const data = {
         generatedAt: new Date(),
+        abClosedOn: closedOn,
         daily: computeVariantStats(daily.rows),
         weekly: computeVariantStats(weekly.rows),
         weeklyFormats: rollUp(weekly.rows, "format"),

@@ -2,14 +2,8 @@ import NextAuth from 'next-auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { authConfig } from './auth.config';
-import {
-    AB_ADMIN_COOKIE,
-    AB_COOKIE,
-    AB_COOKIE_MAX_AGE,
-    isActiveVariantKey,
-    isKnownVariantKey,
-    pickVariantKey,
-} from './lib/ab/registry';
+import { AB_ADMIN_COOKIE, AB_COOKIE, AB_COOKIE_MAX_AGE, isTestClosed } from './lib/ab/registry';
+import { AB_PREVIEW_HEADER, decideAb } from './lib/ab/assignment';
 
 const { auth } = NextAuth(authConfig);
 
@@ -55,24 +49,23 @@ export default auth((req) => {
     const isAdminViewer = !!req.auth?.user || isExcludedIp(clientIp(request));
     const hadAdminCookie = request.cookies.get(AB_ADMIN_COOKIE)?.value === '1';
 
-    // Resolve the visitor's A/B variant: forced (?ab=2b) > sticky valid cookie
-    // > fresh CSPRNG assignment.
+    // Resolve the visitor's A/B variant (lib/ab/assignment.ts). Running test:
+    // forced (?ab=2b) > sticky valid cookie > fresh CSPRNG assignment. Closed
+    // test: no assignment, clear any old cookie, admin-only ?ab= preview.
     const forced = nextUrl.searchParams.get('ab');
     const current = request.cookies.get(AB_COOKIE)?.value;
-
-    let assigned: string | null = null;
-    if (forced && isKnownVariantKey(forced) && forced !== current) {
-        assigned = forced;
-    } else if (!isAdminViewer && !isActiveVariantKey(current)) {
-        assigned = pickVariantKey();
-    }
+    const { assign: assigned, clearCookie, previewKey } = decideAb({ forced, current, isAdminViewer });
+    const closed = isTestClosed();
 
     const adminCookieChanged = isAdminViewer !== hadAdminCookie;
-    if (!assigned && !adminCookieChanged) return; // nothing to stamp
+    const spoofedPreview = request.headers.has(AB_PREVIEW_HEADER);
+    if (!assigned && !clearCookie && !previewKey && !adminCookieChanged && !spoofedPreview) return; // nothing to stamp
 
     // Stamp the new variant onto the request cookies too, so this very
     // request's SSR already renders the assigned variant (no control flash).
     const headers = new Headers(request.headers);
+    headers.delete(AB_PREVIEW_HEADER); // only the middleware may set it
+    if (previewKey) headers.set(AB_PREVIEW_HEADER, previewKey);
     if (assigned) {
         const otherCookies = request.cookies
             .getAll()
@@ -81,7 +74,11 @@ export default auth((req) => {
         headers.set('cookie', [...otherCookies, `${AB_COOKIE}=${assigned}`].join('; '));
     }
 
-    const res = NextResponse.next(assigned ? { request: { headers } } : undefined);
+    const rewriteRequest = !!assigned || closed;
+    const res = NextResponse.next(rewriteRequest ? { request: { headers } } : undefined);
+    if (clearCookie) {
+        res.cookies.set(AB_COOKIE, '', { path: '/', maxAge: 0 });
+    }
     if (assigned) {
         res.cookies.set(AB_COOKIE, assigned, {
             maxAge: AB_COOKIE_MAX_AGE,
