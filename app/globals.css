@@ -159,6 +159,12 @@
 [data-ab-style="light"] .border-neutral-700 {
   border-color: #d6d3ce;
 }
+/* Brand logos whose colour is white (TikTok) vanish on the light format's white
+   icon tiles. Use the brand's on-light colour instead. !important beats the
+   inline fill set from BRAND_ICONS. */
+[data-ab-style="light"] svg[data-brand="tiktok"] {
+  fill: #000000 !important;
+}
 /* Pill-shaped link buttons for the light format */
 [data-ab-style="light"] .rounded-lg {
   border-radius: 1.25rem;

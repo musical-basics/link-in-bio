@@ -59,6 +59,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
                     <svg
                       viewBox={brandData.viewBox}
                       className="h-20 w-20"
+                      data-brand={brandKey}
                       style={{ fill: brandData.color || 'white' }}
                     >
                       <path d={brandData.path} />
@@ -114,6 +115,7 @@ export function LinkButton({ link, onShare }: LinkButtonProps) {
                   <svg
                     viewBox={brandData.viewBox}
                     className="w-full h-full"
+                    data-brand={brandKey}
                     style={{ fill: brandData.color || 'white' }}
                   >
                     <path d={brandData.path} />
