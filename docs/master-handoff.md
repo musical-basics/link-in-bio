@@ -1,0 +1,27 @@
+# Musical Bio — manager handoff
+
+A new manager reads this first. Manager session: `bio-manager`. Hub key: `bio` (`cmdr inbox bio`).
+
+## Workers
+
+| Name | Session id | Worktree | Owns | Current task |
+| --- | --- | --- | --- | --- |
+| bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | Brief #45: Portfolio link at the bottom of musical.bio/lionelyu |
+| bio-accounts | 6c7bbe8f | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema | Brief #47: Sign in with Ultimate Pianist, part 1 |
+
+Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermissions --model claude-opus-5-5 --effort high "<brief>"`.
+`ListAgents` before any resume; a listed worker is alive, so SendMessage it.
+
+## Rules and rulings
+
+- `main` deploys production (Vercel). musical.bio/lionelyu is Lionel's social landing page: it must not break.
+- Workers push branches; only the manager merges to main. No production migrations without a report first.
+- New decisions/todos go only into the hub (`cmdr ask` / `cmdr todo`); reports name them by number, not contents (Lionel, 11-09).
+- 11-09: Portfolio link goes at the bottom of his bio (need #24).
+- 11-09: Ultimate Pianist users get both: the existing signup stays, "Sign in with Ultimate Pianist" is added, and
+  people arriving from Ultimate Pianist are offered an auto-created bio (need #25). Depends on Ultimate Pianist's
+  sign-in, which its manager is designing; anything needed from that side goes through the commander.
+
+## Log
+
+- 11-09: Onboarded (briefs #6, #18, #40). Briefed bio-site (#45) and bio-accounts (#47).
