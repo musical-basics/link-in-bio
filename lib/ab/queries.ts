@@ -54,6 +54,22 @@ async function hogql(query: string): Promise<{ results: any[][]; error?: string 
  */
 export async function fetchAbSessionRows(days: number): Promise<{ rows: AbSessionRow[]; error?: string }> {
     const dayCount = Math.max(1, Math.min(90, Math.floor(days)))
+    return fetchAbSessionRowsWhere(`timestamp >= now() - interval ${dayCount} day`)
+}
+
+/**
+ * Same rows for a fixed date window, [from, to] inclusive (YYYY-MM-DD, UTC),
+ * e.g. the whole test once it is closed.
+ */
+export async function fetchAbSessionRowsBetween(from: string, to: string): Promise<{ rows: AbSessionRow[]; error?: string }> {
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+    if (!DATE_RE.test(from) || !DATE_RE.test(to)) return { rows: [], error: `Bad date window ${from}..${to}` }
+    return fetchAbSessionRowsWhere(
+        `timestamp >= toDateTime('${from} 00:00:00') AND timestamp < toDateTime('${to} 00:00:00') + interval 1 day`,
+    )
+}
+
+async function fetchAbSessionRowsWhere(window: string): Promise<{ rows: AbSessionRow[]; error?: string }> {
     const { results, error } = await hogql(
         `SELECT properties.ab_variant AS variant,
                 coalesce(toString(properties.$session_id), toString(distinct_id)) AS session,
@@ -64,8 +80,9 @@ export async function fetchAbSessionRows(days: number): Promise<{ rows: AbSessio
          WHERE properties.ab_variant IS NOT NULL
            AND properties.ab_variant != ''
            AND event IN ('ab_page_view', 'ab_page_leave', 'link_clicked')
-           AND timestamp >= now() - interval ${dayCount} day${excludedIpFilter()}
-         GROUP BY variant, session`,
+           AND ${window}${excludedIpFilter()}
+         GROUP BY variant, session
+         LIMIT 50000`, // HogQL returns only 100 rows without an explicit LIMIT
     )
     if (error) return { rows: [], error }
 

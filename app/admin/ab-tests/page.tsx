@@ -1,11 +1,13 @@
 import Link from "next/link"
-import { abRegistry, allVariants } from "@/lib/ab/registry"
-import { fetchAbSessionRows } from "@/lib/ab/queries"
+import { abRegistry, allVariants, isTestClosed } from "@/lib/ab/registry"
+import { fetchAbSessionRows, fetchAbSessionRowsBetween } from "@/lib/ab/queries"
 import { computeVariantStats, rollUp, type VariantStats } from "@/lib/ab/scoring"
 
 export const dynamic = "force-dynamic"
 
 const RANGES = [1, 7, 30] as const
+/** "all" = the whole test, startedOn → closedOn (or today while running). */
+type Range = (typeof RANGES)[number] | "all"
 
 function fmtPct(v: number) {
     return `${(v * 100).toFixed(1)}%`
@@ -94,14 +96,29 @@ export default async function AbTestsPage({
     searchParams: Promise<{ days?: string }>
 }) {
     const { days: daysParam } = await searchParams
-    const days = RANGES.includes(Number(daysParam) as (typeof RANGES)[number]) ? Number(daysParam) : 7
+    const closed = isTestClosed()
+    const range: Range =
+        daysParam === "all"
+            ? "all"
+            : RANGES.includes(Number(daysParam) as (typeof RANGES)[number])
+              ? (Number(daysParam) as Range)
+              : closed
+                ? "all"
+                : 7
+    const windowEnd = abRegistry.closedOn ?? new Date().toISOString().slice(0, 10)
+    const rangeLabel =
+        range === "all" ? `whole test, ${abRegistry.startedOn} to ${windowEnd}` : range === 1 ? "last day" : `last ${range} days`
 
-    const { rows, error } = await fetchAbSessionRows(days)
+    const { rows, error } =
+        range === "all" ? await fetchAbSessionRowsBetween(abRegistry.startedOn, windowEnd) : await fetchAbSessionRows(range)
 
     const variants = allVariants()
     const variantLabel = new Map(variants.map((v) => [v.key, `${v.format.name} · ${v.order.name}`]))
+    // While running, mark combos outside the pool "off". Once closed every combo is off; no badges.
     const activeKeys = new Set(
-        variants.filter((v) => v.format.active && v.order.active && !abRegistry.disabledKeys.includes(v.key)).map((v) => v.key),
+        closed
+            ? variants.map((v) => v.key)
+            : variants.filter((v) => v.format.active && v.order.active && !abRegistry.disabledKeys.includes(v.key)).map((v) => v.key),
     )
 
     // Show every registry combo (zeros included) plus any retired keys that still have data.
@@ -131,19 +148,20 @@ export default async function AbTestsPage({
                         <h1 className="text-3xl font-bold tracking-tight text-white">A/B Tests</h1>
                         <p className="text-sm text-zinc-400">
                             Number = formatting, letter = link order. Ranked by avg points per session
-                            (clicks, time on page, non-bounce). Preview any variant with <span className="font-mono">?ab=2b</span>.
+                            (clicks, time on page, non-bounce). Preview any variant with <span className="font-mono">?ab=2b</span>
+                            {closed ? " (admin only)" : ""}.
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {RANGES.map((r) => (
+                        {(["all", ...RANGES] as Range[]).map((r) => (
                             <Link
                                 key={r}
                                 href={`/admin/ab-tests?days=${r}`}
                                 className={`rounded-md px-3 py-1.5 text-sm ${
-                                    r === days ? "bg-zinc-100 text-zinc-900" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                                    r === range ? "bg-zinc-100 text-zinc-900" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
                                 }`}
                             >
-                                {r === 1 ? "Today" : `${r} days`}
+                                {r === "all" ? "Whole test" : r === 1 ? "Today" : `${r} days`}
                             </Link>
                         ))}
                         <Link
@@ -155,6 +173,16 @@ export default async function AbTestsPage({
                     </div>
                 </div>
 
+                {closed && (
+                    <div className="rounded-xl border border-emerald-900 bg-emerald-950/30 p-5 text-sm text-emerald-100">
+                        <p className="font-semibold text-emerald-200">
+                            Test closed on {abRegistry.closedOn} (ran {abRegistry.startedOn} to {abRegistry.closedOn}).
+                            No new visitors are assigned and no A/B events are recorded.
+                        </p>
+                        {abRegistry.result && <p className="mt-2 text-emerald-100/90">{abRegistry.result}</p>}
+                    </div>
+                )}
+
                 {error && (
                     <div className="rounded-md border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">
                         A/B analytics query failed: {error}
@@ -163,7 +191,7 @@ export default async function AbTestsPage({
 
                 <StatsTable
                     title="Variant leaderboard"
-                    subtitle={`All format × order combinations, last ${days === 1 ? "day" : `${days} days`}`}
+                    subtitle={`All format × order combinations, ${rangeLabel}`}
                     stats={variantStats}
                     labelFor={(k) => variantLabel.get(k) ?? ""}
                     inactiveKeys={inactiveVariantKeys}

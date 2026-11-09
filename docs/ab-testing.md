@@ -1,5 +1,42 @@
 # musical.bio A/B testing system — operator guide
 
+## Status: closed on 2026-11-09
+
+The bio-page test ran from 2026-08-04 to 2026-11-09 (Lionel's instruction #61, brief #85).
+`lib/ab/registry.ts` has `closedOn: "2026-11-09"`, which switches the system off without deleting it.
+
+**What is live now:** every bio page shows its owner's own theme and link order, with no variants.
+For musical.bio/lionelyu that is the Cinematic theme (his own setting, and the winning format) in his own order.
+Nothing is assigned, no `mb_ab` cookie is set (a returning visitor's cookie is deleted), no `ab_*` events are
+sent, and the tracker unregisters the `ab_variant` / `ab_format` / `ab_order` super properties.
+`?ab=<key>` still previews a variant, for admin viewers only (logged in or `AB_EXCLUDED_IPS`), for that request,
+via the `x-mb-ab-preview` request header the middleware sets; normal visitors' `?ab=` is ignored.
+
+**Final result** (report's own scoring, complete PostHog pull, bootstrap 95% CI on avg points, two-proportion
+z-tests on CTR and bounce):
+
+| period | sessions | format 2 Cinematic vs 3 Classic light | order b vs c |
+|---|---|---|---|
+| whole test (08-04 →) | 899 | 5.40 vs 4.65 pts, +0.75 [+0.09, +1.39]; bounce 32.5% vs 39.3% (p = 0.04); CTR 40.6% vs 38.1% (noise) | 4.89 vs 5.18 pts, CTR 39.8% vs 39.0%: noise on every metric |
+| 2×2 (08-14 →) | 798 | 5.36 vs 4.62 pts, +0.74 [+0.07, +1.42]; bounce 32.8% vs 40.2% (p = 0.03); CTR 40.4% vs 37.2% (noise) | 4.84 vs 5.15 pts, CTR 39.0% vs 38.7%: noise |
+
+Per variant since 08-14: 2c 5.48 pts (n 234), 2b 5.21 (187), 3c 4.77 (194), 3b 4.46 (182).
+
+- **Formatting:** Cinematic beat Classic light, a modest but clear win (avg points and bounce; CTR was level).
+- **Link order:** no measurable difference. Order b ("Masterclass first") never pinned anything: no link's title
+  or URL ever matched its keywords (`masterclass`, `master class`, `course`, `class`) — checked against every
+  current link and every link clicked since 08-01. So b was really the owner's own order, and the order
+  comparison was "own order vs YouTube first". That comparison is still valid; it just isn't the one the name
+  says. The retired format 1 and order a (08-14) had only 31 and 36 sessions; their gaps were within noise.
+- **Data caveat (fixed):** the dashboard's PostHog query had no `LIMIT`, and HogQL then returns only 100 rows, so
+  ranges with more than 100 sessions (e.g. 30 days) were scored on a truncated sample. The 7-day email windows
+  stayed under 100. The query now sets `LIMIT 50000`; the numbers above are from a complete pull.
+
+The dashboard (`/admin/ab-tests`) opens on the whole test once closed. The 12-hour email keeps site traffic and
+replaces the A/B leaderboards with one line ("A/B test closed on 11-09; final results on the dashboard").
+To run a new test: set `closedOn: null`, give it new format/order ids (never reuse old ones), and move
+`startedOn`. Everything below describes the system as it ran.
+
 Simplified port of the DreamPlay funnel blueprint (`AB-TESTING-SYSTEM.md`).
 No purchases here, so we optimize for **CTR, time on page, and low bounce
 rate**. Unlike DreamPlay there is no `/main` split — **every visitor** to the

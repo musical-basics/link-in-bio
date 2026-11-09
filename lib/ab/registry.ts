@@ -48,6 +48,17 @@ export interface AbRegistry {
     orders: AbOrder[]
     /** Individual format×order combos to exclude from assignment, e.g. ["3c"] */
     disabledKeys: string[]
+    /** First day of the test (YYYY-MM-DD, UTC); start of the dashboard's "whole test" range. */
+    startedOn: string
+    /**
+     * Day the test was closed (YYYY-MM-DD), or null while it runs. Closed means:
+     * no assignment, no mb_ab cookie (existing ones are cleared), no A/B events,
+     * and every bio page renders its owner's own theme and link order.
+     * `?ab=<key>` still previews a variant for admin viewers only.
+     */
+    closedOn: string | null
+    /** One-paragraph final result, shown on the dashboard once closed. */
+    result: string | null
 }
 
 export const AB_COOKIE = "mb_ab"
@@ -94,6 +105,8 @@ export const abRegistry: AbRegistry = {
         {
             id: "b",
             name: "Masterclass first",
+            // No link's title or URL ever matched these, so b never pinned
+            // anything: in practice it was the owner's order (brief #85).
             pinKeywords: ["masterclass", "master class", "course", "class"],
             active: true,
         },
@@ -105,6 +118,14 @@ export const abRegistry: AbRegistry = {
         },
     ],
     disabledKeys: [],
+    startedOn: "2026-08-04",
+    closedOn: "2026-11-09",
+    result:
+        "Formatting: Cinematic (2) beat Classic light (3) — +0.74 avg points/session (95% CI +0.07 to +1.42) " +
+        "and 7 points less bounce (p = 0.03), 798 sessions since 08-14. Link order: no difference between " +
+        "b and c (p > 0.6). b never pinned anything (no link matched its keywords), so it was really the " +
+        "owner's own order vs YouTube first. Live since closing: each owner's own theme and link order " +
+        "(Lionel's own theme is Cinematic, the winner).",
 }
 
 export interface AbVariant {
@@ -137,51 +158,64 @@ function validateRegistry(reg: AbRegistry): void {
             throw new Error(`AB registry: disabledKeys entry "${key}" does not match any format×order combo`)
         }
     }
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+    if (!DATE_RE.test(reg.startedOn)) throw new Error(`AB registry: startedOn "${reg.startedOn}" must be YYYY-MM-DD`)
+    if (reg.closedOn !== null) {
+        if (!DATE_RE.test(reg.closedOn)) throw new Error(`AB registry: closedOn "${reg.closedOn}" must be YYYY-MM-DD`)
+        if (reg.closedOn < reg.startedOn) throw new Error("AB registry: closedOn is before startedOn")
+    }
 }
 
 // Fail the build (module load) on a bad registry instead of mis-routing traffic.
 validateRegistry(abRegistry)
 
+/** True once the test is closed (registry.closedOn is set). */
+export function isTestClosed(reg: AbRegistry = abRegistry): boolean {
+    return reg.closedOn !== null
+}
+
 /** Every combo in the registry, active or not (dashboard shows all). */
-export function allVariants(): AbVariant[] {
+export function allVariants(reg: AbRegistry = abRegistry): AbVariant[] {
     const out: AbVariant[] = []
-    for (const f of abRegistry.formats) {
-        for (const o of abRegistry.orders) {
+    for (const f of reg.formats) {
+        for (const o of reg.orders) {
             out.push({ key: `${f.id}${o.id}`, format: f, order: o, weight: (f.weight ?? 1) * (o.weight ?? 1) })
         }
     }
     return out
 }
 
-/** The assignable pool. */
-export function activeVariants(): AbVariant[] {
-    return allVariants().filter(
-        (v) => v.format.active && v.order.active && !abRegistry.disabledKeys.includes(v.key),
+/** The assignable pool. Empty once the test is closed. */
+export function activeVariants(reg: AbRegistry = abRegistry): AbVariant[] {
+    if (isTestClosed(reg)) return []
+    return allVariants(reg).filter(
+        (v) => v.format.active && v.order.active && !reg.disabledKeys.includes(v.key),
     )
 }
 
 /** Known = parseable against the current registry (active or not). */
-export function resolveVariant(key: string | undefined | null): AbVariant | null {
+export function resolveVariant(key: string | undefined | null, reg: AbRegistry = abRegistry): AbVariant | null {
     if (!key) return null
-    return allVariants().find((v) => v.key === key) ?? null
+    return allVariants(reg).find((v) => v.key === key) ?? null
 }
 
-export function isActiveVariantKey(key: string | undefined | null): boolean {
+export function isActiveVariantKey(key: string | undefined | null, reg: AbRegistry = abRegistry): boolean {
     if (!key) return false
-    return activeVariants().some((v) => v.key === key)
+    return activeVariants(reg).some((v) => v.key === key)
 }
 
-export function isKnownVariantKey(key: string | undefined | null): boolean {
-    return resolveVariant(key) !== null
+export function isKnownVariantKey(key: string | undefined | null, reg: AbRegistry = abRegistry): boolean {
+    return resolveVariant(key, reg) !== null
 }
 
 /**
- * Weighted random pick from the active pool.
+ * Weighted random pick from the active pool (null when the pool is empty,
+ * e.g. once the test is closed).
  * CSPRNG only — Math.random can repeat across invocations in reused edge
  * isolates and pin every visitor to one variant (see AB-TESTING-SYSTEM.md §4).
  */
-export function pickVariantKey(): string | null {
-    const pool = activeVariants()
+export function pickVariantKey(reg: AbRegistry = abRegistry): string | null {
+    const pool = activeVariants(reg)
     if (pool.length === 0) return null
     const total = pool.reduce((sum, v) => sum + v.weight, 0)
     const buf = new Uint32Array(1)

@@ -1,16 +1,46 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib"
-import { abRegistry, allVariants } from "./registry"
+import { abRegistry, allVariants } from "./registry.ts"
 import type { TrafficStats } from "./queries"
 import type { VariantStats } from "./scoring"
 
 export interface AbReportData {
     generatedAt: Date
+    /** registry.closedOn: once set, the report drops the A/B leaderboards for one line */
+    abClosedOn: string | null
     daily: VariantStats[]
     weekly: VariantStats[]
     weeklyFormats: VariantStats[]
     weeklyOrders: VariantStats[]
     dailyTraffic: TrafficStats
     weeklyTraffic: TrafficStats
+}
+
+/** The one line the report shows instead of the leaderboards once the test is closed. */
+export function abClosedLine(closedOn: string): string {
+    return `A/B test closed on ${closedOn.slice(5)}; final results on the dashboard (/admin/ab-tests).`
+}
+
+export type AbSection =
+    | { kind: "closed"; line: string }
+    | {
+          kind: "leaderboards"
+          leader: VariantStats | null
+          tables: { title: string; stats: VariantStats[] }[]
+      }
+
+/** What the A/B part of the report shows (pure; the PDF and email both follow it). */
+export function abSection(data: AbReportData): AbSection {
+    if (data.abClosedOn) return { kind: "closed", line: abClosedLine(data.abClosedOn) }
+    return {
+        kind: "leaderboards",
+        leader: data.daily.find((s) => s.sessions > 0) ?? data.weekly.find((s) => s.sessions > 0) ?? null,
+        tables: [
+            { title: "Last 24 hours — variant leaderboard", stats: data.daily },
+            { title: "Last 7 days — variant leaderboard", stats: data.weekly },
+            { title: "Last 7 days — by formatting (number)", stats: data.weeklyFormats },
+            { title: "Last 7 days — by link order (letter)", stats: data.weeklyOrders },
+        ],
+    }
 }
 
 const PAGE_W = 612 // US Letter
@@ -46,19 +76,24 @@ export async function buildAbReportPdf(data: AbReportData): Promise<Uint8Array> 
         page.drawText(s, { x, y, size, font: f, color })
     }
 
+    const ab = abSection(data)
+
     // Header
-    text("musical.bio — Traffic & A/B Test Report", MARGIN, 20, bold)
+    text(ab.kind === "closed" ? "musical.bio — Traffic Report" : "musical.bio — Traffic & A/B Test Report", MARGIN, 20, bold)
     y -= 24
     text(
         `Generated ${data.generatedAt.toISOString().slice(0, 16).replace("T", " ")} UTC`,
         MARGIN, 10, font, rgb(0.45, 0.45, 0.5),
     )
     y -= 14
-    text(
-        "Variant key: number = formatting, letter = link order. Ranked by avg points/session (clicks, time on page, non-bounce).",
-        MARGIN, 9, font, rgb(0.45, 0.45, 0.5),
-    )
-    y -= 28
+    if (ab.kind === "leaderboards") {
+        text(
+            "Variant key: number = formatting, letter = link order. Ranked by avg points/session (clicks, time on page, non-bounce).",
+            MARGIN, 9, font, rgb(0.45, 0.45, 0.5),
+        )
+        y -= 14
+    }
+    y -= 14
 
     const drawTable = (title: string, stats: VariantStats[]) => {
         ensureRoom(60)
@@ -110,7 +145,7 @@ export async function buildAbReportPdf(data: AbReportData): Promise<Uint8Array> 
         y -= 16
     }
 
-    const leader = data.daily.find((s) => s.sessions > 0) ?? data.weekly.find((s) => s.sessions > 0)
+    const leader = ab.kind === "leaderboards" ? ab.leader : null
     if (leader) {
         ensureRoom(20)
         text(
@@ -173,12 +208,51 @@ export async function buildAbReportPdf(data: AbReportData): Promise<Uint8Array> 
     text("A/B testing", MARGIN, 16, bold)
     y -= 22
 
-    drawTable("Last 24 hours — variant leaderboard", data.daily)
-    drawTable("Last 7 days — variant leaderboard", data.weekly)
-    drawTable("Last 7 days — by formatting (number)", data.weeklyFormats)
-    drawTable("Last 7 days — by link order (letter)", data.weeklyOrders)
+    if (ab.kind === "closed") {
+        ensureRoom(16)
+        text(ab.line, MARGIN, 10, font)
+        y -= 16
+    } else {
+        for (const t of ab.tables) drawTable(t.title, t.stats)
+    }
 
     return doc.save()
+}
+
+/** Subject and plain-text body of the report email (pure). */
+export function reportEmail(data: AbReportData): { subject: string; text: string } {
+    const dateStr = data.generatedAt.toISOString().slice(0, 10)
+    const ab = abSection(data)
+    const leader = ab.kind === "leaderboards" ? ab.leader : null
+    const traffic =
+        `Traffic last 24h: ${data.dailyTraffic.pageviews} pageviews, ${data.dailyTraffic.visitors} visitors, ` +
+        `${data.dailyTraffic.clicks} link clicks (${(data.dailyTraffic.ctr * 100).toFixed(1)}% CTR).\n` +
+        `Traffic last 7d: ${data.weeklyTraffic.pageviews} pageviews, ${data.weeklyTraffic.visitors} visitors, ` +
+        `${data.weeklyTraffic.clicks} link clicks (${(data.weeklyTraffic.ctr * 100).toFixed(1)}% CTR).\n\n`
+
+    if (ab.kind === "closed") {
+        return {
+            subject: `musical.bio report ${dateStr}`,
+            text:
+                `Traffic report for musical.bio (${dateStr}).\n\n` +
+                traffic +
+                `${ab.line}\n\n` +
+                "Full breakdown attached as PDF. Live dashboard: /admin/analytics",
+        }
+    }
+    return {
+        subject: `musical.bio report ${dateStr}${leader ? ` — A/B leader: ${leader.key}` : ""}`,
+        text:
+            `Traffic + A/B test report for musical.bio (${dateStr}).\n\n` +
+            traffic +
+            (leader
+                ? `Best performing variant: ${leader.key} (${variantLabel(leader.key)}) with ` +
+                  `${leader.avgPoints.toFixed(1)} avg points/session, ${(leader.ctr * 100).toFixed(1)}% CTR, ` +
+                  `${Math.round(leader.avgDurationSeconds)}s avg time on page, ` +
+                  `${(leader.bounceRate * 100).toFixed(1)}% bounce rate.\n\n`
+                : "No A/B sessions recorded yet.\n\n") +
+            "Full breakdown attached as PDF. Live dashboards: /admin/analytics and /admin/ab-tests",
+    }
 }
 
 /** Email the PDF via Resend's HTTP API. */
@@ -193,7 +267,7 @@ export async function emailAbReport(
     const to = toOverride || process.env.AB_REPORT_TO || "support@musicalbasics.com"
     const from = process.env.AB_REPORT_FROM || "musical.bio reports <onboarding@resend.dev>"
     const dateStr = data.generatedAt.toISOString().slice(0, 10)
-    const leader = data.daily.find((s) => s.sessions > 0) ?? data.weekly.find((s) => s.sessions > 0)
+    const { subject, text } = reportEmail(data)
 
     const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -204,23 +278,11 @@ export async function emailAbReport(
         body: JSON.stringify({
             from,
             to: [to],
-            subject: `musical.bio report ${dateStr}${leader ? ` — A/B leader: ${leader.key}` : ""}`,
-            text:
-                `Traffic + A/B test report for musical.bio (${dateStr}).\n\n` +
-                `Traffic last 24h: ${data.dailyTraffic.pageviews} pageviews, ${data.dailyTraffic.visitors} visitors, ` +
-                `${data.dailyTraffic.clicks} link clicks (${(data.dailyTraffic.ctr * 100).toFixed(1)}% CTR).\n` +
-                `Traffic last 7d: ${data.weeklyTraffic.pageviews} pageviews, ${data.weeklyTraffic.visitors} visitors, ` +
-                `${data.weeklyTraffic.clicks} link clicks (${(data.weeklyTraffic.ctr * 100).toFixed(1)}% CTR).\n\n` +
-                (leader
-                    ? `Best performing variant: ${leader.key} (${variantLabel(leader.key)}) with ` +
-                      `${leader.avgPoints.toFixed(1)} avg points/session, ${(leader.ctr * 100).toFixed(1)}% CTR, ` +
-                      `${Math.round(leader.avgDurationSeconds)}s avg time on page, ` +
-                      `${(leader.bounceRate * 100).toFixed(1)}% bounce rate.\n\n`
-                    : "No A/B sessions recorded yet.\n\n") +
-                "Full breakdown attached as PDF. Live dashboards: /admin/analytics and /admin/ab-tests",
+            subject,
+            text,
             attachments: [
                 {
-                    filename: `ab-report-${dateStr}.pdf`,
+                    filename: `${data.abClosedOn ? "traffic-report" : "ab-report"}-${dateStr}.pdf`,
                     content: Buffer.from(pdf).toString("base64"),
                 },
             ],
