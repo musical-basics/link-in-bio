@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { OrDivider, UltimatePianistButton } from "@/components/auth/ultimate-pianist-button"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -23,7 +24,14 @@ function SubmitButton() {
     )
 }
 
-export function LoginForm() {
+export function LoginForm({
+    upEnabled = false,
+    link,
+}: {
+    upEnabled?: boolean
+    /** Pending Ultimate Pianist link: this login's password confirms it. */
+    link?: { token: string; email: string }
+}) {
     const router = useRouter()
     const [errorMessage, dispatch] = useFormState(authenticate, undefined)
 
@@ -42,7 +50,20 @@ export function LoginForm() {
                 <p className="text-zinc-400 text-sm">Enter your credentials to access your dashboard</p>
             </div>
 
+            {link ? (
+                <div className="mb-6 rounded-md border border-white/10 bg-zinc-950/50 p-4 text-sm text-zinc-300">
+                    You already have a Musical Bio with this email. Enter your Musical Bio password once to
+                    connect your Ultimate Pianist account; after that, either sign-in works.
+                </div>
+            ) : upEnabled ? (
+                <>
+                    <UltimatePianistButton />
+                    <OrDivider />
+                </>
+            ) : null}
+
             <form action={dispatch} className="space-y-5">
+                {link && <input type="hidden" name="linkToken" value={link.token} />}
                 <div className="space-y-2">
                     <Label htmlFor="email" className="text-zinc-300 text-sm">Email</Label>
                     <Input
@@ -50,6 +71,7 @@ export function LoginForm() {
                         name="email"
                         type="email"
                         placeholder="you@example.com"
+                        defaultValue={link?.email}
                         required
                         className="bg-zinc-950/50 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-white/20 focus:ring-0 rounded-md h-11"
                     />
