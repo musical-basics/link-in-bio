@@ -40,3 +40,8 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   `prisma migrate resolve --applied 20261109120000_add_account_links`. Keys go in only after #53.
   Ruling (worker default, kept): "No thanks" on the UP arrival prompt → email signup form.
   bio-site briefed on the /:username lookahead bug (usernames starting with u/api/admin… 404).
+- 11-09: Landed bio-site 095246b as 50eba1f (username rewrite fix); verified in production. Measured: "/" (marketing
+  page, always was, app/page.tsx wins over the rewrite) adds no A/B scores — tracker renders on bio pages only. No change.
+  UP registered Musical Bio (brief #57): client id uWUklvRwAm8PRjNV, secret-basic, PKCE S256, username claim
+  preferred_username (code already falls back to it). Keys go in after todo #53; then bio-accounts runs the real test.
+  Waiting: Lionel todos #51, #53; decision #52. Both workers on hold.
