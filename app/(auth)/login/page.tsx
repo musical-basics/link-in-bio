@@ -3,6 +3,7 @@ import { authSecret } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isUpEnabled } from "@/lib/up/config"
 import { verifyLinkToken } from "@/lib/up/link-token"
+import { loginErrorMessage } from "@/lib/auth/login-error"
 
 export default async function LoginPage({
     searchParams,
@@ -30,7 +31,7 @@ export default async function LoginPage({
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4">
-            <LoginForm upEnabled={upEnabled} link={link} />
+            <LoginForm upEnabled={upEnabled} link={link} notice={loginErrorMessage(params.error) ?? undefined} />
         </div>
     )
 }

@@ -27,10 +27,13 @@ function SubmitButton() {
 export function LoginForm({
     upEnabled = false,
     link,
+    notice,
 }: {
     upEnabled?: boolean
     /** Pending Ultimate Pianist link: this login's password confirms it. */
     link?: { token: string; email: string }
+    /** A friendly message for a failed sign-in redirect (from ?error=, see lib/auth/login-error.ts). */
+    notice?: string
 }) {
     const router = useRouter()
     const [errorMessage, dispatch] = useFormState(authenticate, undefined)
@@ -49,6 +52,12 @@ export function LoginForm({
                 <h1 className="font-serif text-3xl text-white mb-2">Welcome Back</h1>
                 <p className="text-zinc-400 text-sm">Enter your credentials to access your dashboard</p>
             </div>
+
+            {notice && !errorMessage && (
+                <p role="alert" className="mb-6 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-center text-zinc-200">
+                    {notice}
+                </p>
+            )}
 
             {link ? (
                 <div className="mb-6 rounded-md border border-white/10 bg-zinc-950/50 p-4 text-sm text-zinc-300">
