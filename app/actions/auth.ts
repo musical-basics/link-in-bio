@@ -1,10 +1,12 @@
 'use server'
 
-import { signIn, signOut } from '@/auth';
+import { signIn, signOut, authSecret } from '@/auth';
 import { AuthError } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import { revalidatePath } from 'next/cache';
+import { isUpEnabled, UP_PROVIDER_ID } from '@/lib/up/config';
+import { redeemLinkToken } from '@/lib/up/accounts';
 
 export async function authenticate(
     prevState: string | undefined,
@@ -16,6 +18,18 @@ export async function authenticate(
             password: formData.get('password'),
             redirect: false,
         });
+
+        // Came here from "Sign in with Ultimate Pianist" with an email that already
+        // had an account: the password just proved ownership, so link the two.
+        const linkToken = formData.get('linkToken');
+        if (typeof linkToken === 'string' && linkToken) {
+            try {
+                const linked = await redeemLinkToken(prisma, linkToken, authSecret(), String(formData.get('email') ?? ''));
+                if (!linked) console.warn('Ultimate Pianist link token not redeemed');
+            } catch (err) {
+                console.error('Ultimate Pianist link failed:', err);
+            }
+        }
         return 'success';
     } catch (error) {
         if (error instanceof AuthError) {
@@ -117,6 +131,15 @@ export async function signup(formData: FormData) {
         console.error('Signup error:', error);
         return { success: false, error: 'Failed to create account' };
     }
+}
+
+/**
+ * "Sign in with your Ultimate Pianist account". First sign-in creates the
+ * Musical Bio account (see auth.ts signIn callback); everyone lands in the editor.
+ */
+export async function signInWithUltimatePianist() {
+    if (!isUpEnabled()) return;
+    await signIn(UP_PROVIDER_ID, { redirectTo: '/admin' });
 }
 
 export async function logout() {

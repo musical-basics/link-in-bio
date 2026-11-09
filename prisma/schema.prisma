@@ -11,10 +11,12 @@ datasource db {
 model User {
   id             String          @id @default(cuid())
   email          String          @unique
-  password       String
+  /// Null for accounts created by "Sign in with Ultimate Pianist" (no Musical Bio password).
+  password       String?
   username       String          @unique
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  accounts       Account[]
   groups         Group[]
   links          Link[]
   profile        Profile?
@@ -89,5 +91,21 @@ model Group {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([name, userId])
+  @@index([userId])
+}
+
+/// An outside sign-in (Ultimate Pianist) linked to a Musical Bio user,
+/// matched by the provider's stable account id (OIDC `sub`), never by email.
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
   @@index([userId])
 }

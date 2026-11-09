@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { OrDivider, UltimatePianistButton } from "@/components/auth/ultimate-pianist-button"
+
+const UP_ERRORS: Record<string, string> = {
+    "no-email": "Your Ultimate Pianist account didn't share a verified email, so we couldn't create your Musical Bio. Sign up with email below.",
+    failed: "Signing in with Ultimate Pianist didn't work. Please try again, or sign up with email below.",
+}
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -23,7 +29,7 @@ function SubmitButton() {
     )
 }
 
-export function SignupForm() {
+export function SignupForm({ upEnabled = false, upError }: { upEnabled?: boolean; upError?: string }) {
     const router = useRouter()
     const [error, setError] = useState("")
 
@@ -46,6 +52,16 @@ export function SignupForm() {
                 <h1 className="font-serif text-3xl text-white mb-2">Create Account</h1>
                 <p className="text-zinc-400 text-sm">Sign up to create your Link in Bio</p>
             </div>
+
+            {upEnabled && (
+                <>
+                    {upError && UP_ERRORS[upError] && (
+                        <p className="text-sm text-destructive text-center mb-4">{UP_ERRORS[upError]}</p>
+                    )}
+                    <UltimatePianistButton />
+                    <OrDivider />
+                </>
+            )}
 
             <form action={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
