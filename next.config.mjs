@@ -37,9 +37,11 @@ const nextConfig = {
         source: '/:username/story',
         destination: '/u/:username/story',
       },
-      // /:username maps to /u/:username (excluding reserved paths)
+      // /:username maps to /u/:username, excluding reserved first segments.
+      // Reserved names are matched as whole segments, so "ursula" or "apiary" still
+      // resolve; favicon stays a prefix (favicon.ico, favicon-32x32.png, ...).
       {
-        source: '/:username((?!admin|login|signup|api|_next|u|favicon).*)',
+        source: '/:username((?!(?:admin|login|signup|api|_next|u)(?:/|$)|favicon).*)',
         destination: '/u/:username',
       },
     ];
