@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+/**
+ * Owner API client: edit a Musical Bio without logging in to the admin.
+ *
+ *   node --env-file=.env.local scripts/owner.mjs <METHOD> <path> ['<json body>']
+ *
+ * Credentials come from the environment, by name, never from arguments:
+ *   MB_OWNER_EMAIL     account email (default: yulionel829@gmail.com)
+ *   MB_OWNER_PASSWORD  account password (falls back to ADMIN_PASSWORD)
+ *   MB_BASE_URL        default https://musical.bio
+ *
+ * Examples:
+ *   scripts/owner.mjs GET /                         # profile, groups, links (ids, order)
+ *   scripts/owner.mjs POST /links '{"title":"Portfolio","url":"https://…","group":"Work"}'
+ *   scripts/owner.mjs PATCH /links/<id> '{"isActive":false}'
+ *   scripts/owner.mjs PUT /links/order '{"ids":["…","…"]}'
+ *   scripts/owner.mjs POST /groups '{"name":"Press"}'
+ *   scripts/owner.mjs PATCH /groups/<id> '{"description":"…"}'
+ *   scripts/owner.mjs PUT /groups/order '{"ids":["…"]}'
+ *   scripts/owner.mjs PATCH /profile '{"bio":"…"}'
+ */
+
+const [method = '', path = '', body] = process.argv.slice(2);
+const METHODS = ['GET', 'POST', 'PATCH', 'PUT'];
+if (!METHODS.includes(method.toUpperCase()) || !path.startsWith('/')) {
+    console.error("usage: node --env-file=.env.local scripts/owner.mjs <GET|POST|PATCH|PUT> </path> ['<json>']");
+    process.exit(2);
+}
+
+const email = process.env.MB_OWNER_EMAIL || 'yulionel829@gmail.com';
+const password = process.env.MB_OWNER_PASSWORD || process.env.ADMIN_PASSWORD;
+if (!password) {
+    console.error('Set MB_OWNER_PASSWORD (or ADMIN_PASSWORD) in the environment, e.g. node --env-file=.env.local …');
+    process.exit(2);
+}
+const base = (process.env.MB_BASE_URL || 'https://musical.bio').replace(/\/+$/, '');
+
+if (body !== undefined) {
+    try {
+        JSON.parse(body);
+    } catch {
+        console.error('The body must be valid JSON.');
+        process.exit(2);
+    }
+}
+
+const url = `${base}/api/owner${path === '/' ? '' : path}`;
+const res = await fetch(url, {
+    method: method.toUpperCase(),
+    headers: {
+        authorization: 'Basic ' + Buffer.from(`${email}:${password}`).toString('base64'),
+        ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
+    },
+    body,
+});
+const text = await res.text();
+let out = text;
+try {
+    out = JSON.stringify(JSON.parse(text), null, 2);
+} catch {}
+console.log(out);
+if (!res.ok) {
+    console.error(`HTTP ${res.status} ${method.toUpperCase()} ${url}`);
+    process.exit(1);
+}
