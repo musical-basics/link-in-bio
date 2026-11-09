@@ -45,3 +45,14 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   UP registered Musical Bio (brief #57): client id uWUklvRwAm8PRjNV, secret-basic, PKCE S256, username claim
   preferred_username (code already falls back to it). Keys go in after todo #53; then bio-accounts runs the real test.
   Waiting: Lionel todos #51, #53; decision #52. Both workers on hold.
+- 11-09: Brief #61 (Lionel: "the link-in-bio manager needs to be able to make changes to my profile without me"):
+  owner API landed (f4c2c40, 5c2712b); one-time route (own temp secret ONE_TIME_SETUP_SECRET, since CRON_SECRET is
+  unreadable) applied add_account_links (recorded in _prisma_migrations) and set his password = .env.local
+  ADMIN_PASSWORD; route + secret removed (aede039). Todos #51/#53 obsolete. Use `node --env-file=.env.local
+  scripts/owner.mjs` against https://www.musical.bio (bare domain 307s and drops auth).
+- 11-09: Portfolio link added via owner API (order 12, last in Let's Connect!), verified in 2b/2c/3b/3c.
+- 11-09: UP keys in production (brief #72). Tested through Clerk's authorize; www hop keeps state cookies; AUTH_URL is
+  bare https://musical.bio/ and must stay so (UP registered only the bare callback). Full sign-in needs a human
+  (inbox + Cloudflare check) → Lionel todo #61. Test user stays (no delete path for passwordless users yet).
+- 11-09: Landed 247332e (friendly /login errors; pages.error=/login) and b64bb94 (TikTok icon black in light style).
+  Obsolete branch feat/portfolio-link-script left in place (deletion needs Lionel's OK).
