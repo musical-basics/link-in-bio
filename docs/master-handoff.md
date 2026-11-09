@@ -34,3 +34,9 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
 - 11-09: UP sign-in contract received (#49); callback https://musical.bio/api/auth/callback/ultimatepianist, env
   `AUTH_ULTIMATEPIANIST_ID` / `_SECRET`. Portfolio link blocked on DB access → Lionel todo #51; bio-site waits to
   verify. Variant b pins nothing → decision #52.
+- 11-09: Landed bio-accounts c74c553 as 67cada0 (UP sign-in part 1, off until env set). Migration
+  20261109120000_add_account_links to be applied by Lionel in the Supabase SQL editor (todo #53); afterwards it is
+  NOT recorded in `_prisma_migrations`, so before any future `prisma migrate deploy` run
+  `prisma migrate resolve --applied 20261109120000_add_account_links`. Keys go in only after #53.
+  Ruling (worker default, kept): "No thanks" on the UP arrival prompt → email signup form.
+  bio-site briefed on the /:username lookahead bug (usernames starting with u/api/admin… 404).
