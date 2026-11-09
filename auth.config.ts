@@ -4,6 +4,9 @@ export const authConfig = {
     pages: {
         signIn: '/login',
         signOut: '/login',
+        // Auth.js errors (e.g. ?error=Configuration) land on /login with a friendly
+        // message instead of the default error page showing the raw code.
+        error: '/login',
     },
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
