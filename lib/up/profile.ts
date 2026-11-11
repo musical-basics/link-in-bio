@@ -26,6 +26,25 @@ function str(value: unknown): string | null {
     return trimmed ? trimmed : null;
 }
 
+/**
+ * Clerk serves a generated initials avatar to users who never uploaded a photo.
+ * Its img.clerk.com path is base64url JSON with "type":"default" (an uploaded
+ * photo is "type":"proxy"). That is not their photo, so we don't copy it: the
+ * bio keeps its own placeholder until they add one.
+ */
+export function isClerkDefaultAvatar(url: string): boolean {
+    try {
+        const u = new URL(url);
+        if (u.hostname !== 'img.clerk.com') return false;
+        const segment = u.pathname.split('/').filter(Boolean)[0];
+        if (!segment) return false;
+        const decoded = JSON.parse(Buffer.from(segment, 'base64url').toString('utf8'));
+        return decoded?.type === 'default';
+    } catch {
+        return false;
+    }
+}
+
 export function normalizeUpProfile(claims: Record<string, unknown>): UpProfile {
     const providerAccountId = str(claims.sub) ?? str(claims.id);
     if (!providerAccountId) throw new Error('Ultimate Pianist profile has no subject id');
@@ -35,7 +54,7 @@ export function normalizeUpProfile(claims: Record<string, unknown>): UpProfile {
     const name = str(claims.name) ?? (given || family ? [given, family].filter(Boolean).join(' ') : null);
 
     const picture = str(claims.picture) ?? str(claims.image);
-    const imageUrl = picture && /^https:\/\//i.test(picture) ? picture : null;
+    const imageUrl = picture && /^https:\/\//i.test(picture) && !isClerkDefaultAvatar(picture) ? picture : null;
 
     return {
         providerAccountId,

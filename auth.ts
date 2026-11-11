@@ -5,8 +5,9 @@ import { authConfig } from './auth.config';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcrypt';
-import { getUpConfig, UP_PROVIDER_ID, UP_SCOPES, type UpConfig } from '@/lib/up/config';
+import { getUpConfig, UP_DEFAULT_ISSUER, UP_PROVIDER_ID, UP_SCOPES, type UpConfig } from '@/lib/up/config';
 import { normalizeUpProfile } from '@/lib/up/profile';
+import { gatherUpClaims } from '@/lib/up/userinfo';
 import { resolveUpSignIn, findLinkedUserId, sessionUser } from '@/lib/up/accounts';
 
 async function getUser(email: string) {
@@ -111,8 +112,22 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         async signIn({ account, profile }) {
             if (account?.provider !== UP_PROVIDER_ID) return true;
             try {
-                const upProfile = normalizeUpProfile({ ...profile, sub: account.providerAccountId });
+                // The ID token can leave out the photo, name or username; userinfo fills the gaps.
+                const { claims, log } = await gatherUpClaims({
+                    idClaims: { ...profile },
+                    sub: account.providerAccountId,
+                    accessToken: account.access_token,
+                    issuer: upConfig?.issuer ?? UP_DEFAULT_ISSUER,
+                });
+                const upProfile = normalizeUpProfile(claims);
                 const outcome = await resolveUpSignIn(prisma, upProfile, authSecret());
+                // Claim names and booleans only: never values or tokens.
+                console.log('Ultimate Pianist sign-in:', JSON.stringify({
+                    ...log,
+                    outcome: outcome.kind,
+                    photo: !!upProfile.imageUrl,
+                    photoBackfilled: outcome.kind === 'linked' ? outcome.photoBackfilled : undefined,
+                }));
                 switch (outcome.kind) {
                     case 'linked':
                     case 'created':

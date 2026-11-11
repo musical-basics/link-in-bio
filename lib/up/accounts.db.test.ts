@@ -84,8 +84,40 @@ describe('Ultimate Pianist accounts (database)', { skip: !url && 'TEST_DATABASE_
         // The owner (case-insensitive email) redeems it; the next UP sign-in is linked.
         assert.equal(await redeemLinkToken(db, outcome.linkToken, SECRET, 'ADA@example.com'), true);
         const next = await resolveUpSignIn(db, ada, SECRET);
-        assert.deepEqual(next, { kind: 'linked', userId: existing.id });
+        // The existing account has no profile row, so there is no photo to backfill.
+        assert.deepEqual(next, { kind: 'linked', userId: existing.id, photoBackfilled: false });
         assert.equal(await db.user.count(), 2);
+    });
+
+    test('a later sign-in fills an empty photo from Ultimate Pianist', async () => {
+        // First sign-in arrived without a photo (as on 2026-11-09).
+        const first = await resolveUpSignIn(db, { ...ada, imageUrl: null }, SECRET);
+        assert.equal(first.kind, 'created');
+        const userId = first.kind === 'created' ? first.userId : '';
+        assert.equal((await db.profile.findUniqueOrThrow({ where: { userId } })).imageUrl, null);
+
+        // Signing in again, now with a photo: same account, photo filled.
+        const again = await resolveUpSignIn(db, ada, SECRET);
+        assert.deepEqual(again, { kind: 'linked', userId, photoBackfilled: true });
+        assert.equal((await db.profile.findUniqueOrThrow({ where: { userId } })).imageUrl, 'https://img.clerk.com/ada.png');
+        assert.equal(await db.user.count(), 1);
+
+        // An empty-string photo counts as empty too.
+        await db.profile.update({ where: { userId }, data: { imageUrl: '' } });
+        assert.deepEqual(await resolveUpSignIn(db, ada, SECRET), { kind: 'linked', userId, photoBackfilled: true });
+    });
+
+    test("a photo the person set is never overwritten", async () => {
+        const first = await resolveUpSignIn(db, ada, SECRET);
+        const userId = first.kind === 'created' ? first.userId : '';
+        await db.profile.update({ where: { userId }, data: { imageUrl: 'https://cdn.musical.bio/own.jpg' } });
+
+        const again = await resolveUpSignIn(db, { ...ada, imageUrl: 'https://img.clerk.com/new.png' }, SECRET);
+        assert.deepEqual(again, { kind: 'linked', userId, photoBackfilled: false });
+        assert.equal((await db.profile.findUniqueOrThrow({ where: { userId } })).imageUrl, 'https://cdn.musical.bio/own.jpg');
+
+        // No photo from Ultimate Pianist: nothing changes either.
+        assert.deepEqual(await resolveUpSignIn(db, { ...ada, imageUrl: null }, SECRET), { kind: 'linked', userId, photoBackfilled: false });
     });
 
     test('unverified or missing email cannot create an account', async () => {

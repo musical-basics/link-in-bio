@@ -10,7 +10,7 @@ import { buildNewUserData, pickAvailableUsername, usernameCandidates, type UpPro
 
 export type UpSignInOutcome =
     /** This Ultimate Pianist account is already linked: sign in as that user. */
-    | { kind: 'linked'; userId: string }
+    | { kind: 'linked'; userId: string; photoBackfilled: boolean }
     /** First sign-in, no matching email: a new Musical Bio account was made. */
     | { kind: 'created'; userId: string; username: string }
     /** The email already has a Musical Bio account: prove its password to link. */
@@ -65,13 +65,38 @@ export async function createUserFromUpProfile(
     }
 }
 
+/**
+ * Sets the profile photo from Ultimate Pianist only while the profile has none.
+ * A single conditional update, so a photo the person set is never overwritten
+ * (not even by a sign-in racing with their edit). True when it set one.
+ */
+export async function backfillProfileImage(db: PrismaClient, userId: string, imageUrl: string | null): Promise<boolean> {
+    if (!imageUrl) return false;
+    const { count } = await db.profile.updateMany({
+        where: { userId, OR: [{ imageUrl: null }, { imageUrl: '' }] },
+        data: { imageUrl },
+    });
+    return count > 0;
+}
+
+async function linkedOutcome(db: PrismaClient, userId: string, profile: UpProfile): Promise<UpSignInOutcome> {
+    let photoBackfilled = false;
+    try {
+        photoBackfilled = await backfillProfileImage(db, userId, profile.imageUrl);
+    } catch (error) {
+        // Never block a sign-in over the photo.
+        console.error('Ultimate Pianist photo backfill failed:', error instanceof Error ? error.message : 'error');
+    }
+    return { kind: 'linked', userId, photoBackfilled };
+}
+
 export async function resolveUpSignIn(
     db: PrismaClient,
     profile: UpProfile,
     secret: string,
 ): Promise<UpSignInOutcome> {
     const linked = await findLinkedUserId(db, profile.providerAccountId);
-    if (linked) return { kind: 'linked', userId: linked };
+    if (linked) return linkedOutcome(db, linked, profile);
 
     if (!profile.email || profile.emailVerified === false) return { kind: 'no-email' };
 
@@ -93,7 +118,7 @@ export async function resolveUpSignIn(
     } catch (error) {
         // A parallel first sign-in of the same account won the race: use its link.
         const raced = await findLinkedUserId(db, profile.providerAccountId);
-        if (raced) return { kind: 'linked', userId: raced };
+        if (raced) return linkedOutcome(db, raced, profile);
         throw error;
     }
 }
