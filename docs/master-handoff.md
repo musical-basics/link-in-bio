@@ -1,13 +1,13 @@
 # Musical Bio — manager handoff
 
-A new manager reads this first. Manager session: `bio-manager`. Hub key: `bio` (`cmdr inbox bio`).
+A new manager reads this first. Manager session: `link-in-bio-app-6d` (since 11-11; before that `bio-manager`). Hub key: `bio` (`cmdr inbox bio`).
 
 ## Workers
 
 | Name | Session id | Worktree | Owns | Current task |
 | --- | --- | --- | --- | --- |
-| bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | Brief #45: Portfolio link at the bottom of musical.bio/lionelyu |
-| bio-accounts | e651243f (copy of 6c7bbe8f-8bc9-48c1-8d02-93a57401869a, started with --effort high) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | Brief #121: UP photo didn't carry over |
+| bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | None (not running since 11-09; last work, the A/B close, landed) |
+| bio-accounts | e651243f (copy of 6c7bbe8f-8bc9-48c1-8d02-93a57401869a, started with --effort high) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | None (not running since 11-09; photo fix landed 11-11) |
 
 Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermissions --model claude-opus-5-5 --effort high "<brief>"`.
 `ListAgents` before any resume; a listed worker is alive, so SendMessage it.
@@ -63,3 +63,11 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
 - 11-09: Brief #121: Lionel's real UP test created one bio (`djsputty`; account email is a real person's — keep out of
   git). Name + starter page OK; photo empty (ID token lacked a usable picture?). bio-accounts resumed to fix
   (userinfo fallback + backfill empty image on sign-in). Then one todo: Lionel signs in again → proves photo + reuse.
+- 11-11: Manager handed to `link-in-bio-app-6d` (todo #197, brief #310). Found the photo fix (927fa6a, branch
+  up-photo) pushed but never landed; neither worker alive. Reviewed; 94/94 incl. DB tests on a throwaway Postgres;
+  landed as 7c8b1bb, production Ready, smoke-tested (bio, /login, /signup, the ?from= door, provider list).
+  The backfill only runs on the next sign-in, so: Lionel todo #210 (sign in again; adds a UP photo first, because a
+  Clerk initials avatar is deliberately not copied). After #210: check musical.bio/djsputty has an image and the Vercel
+  log line "Ultimate Pianist sign-in:" says outcome linked, photoBackfilled true; then close briefs #49 #57 #72 #121.
+  Note: the local checkout's Prisma client must be regenerated (`npx prisma generate`) after pulling schema changes,
+  or tsc reports a missing `account` model.
