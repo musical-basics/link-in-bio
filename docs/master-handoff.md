@@ -71,3 +71,8 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   log line "Ultimate Pianist sign-in:" says outcome linked, photoBackfilled true; then close briefs #49 #57 #72 #121.
   Note: the local checkout's Prisma client must be regenerated (`npx prisma generate`) after pulling schema changes,
   or tsc reports a missing `account` model.
+- 11-11: Brief #333 (Lionel did todo #210; UP has no photo upload). Vercel log for his 12:16 sign-in: outcome linked
+  (no second account), userinfo fetched, neither the ID token nor userinfo carries `picture`. Our side is done: a photo
+  fills in at the next sign-in once UP sends one (UP's manager told by the commander). Closed briefs #49 #57 #72 #121
+  #333. His "all access tier" line in #333 is Ultimate Pianist's; Musical Bio has no tiers. Nothing running.
+  Check sign-ins: `vercel logs --environment production --no-branch --since 6h -q "Ultimate Pianist" -x`.
