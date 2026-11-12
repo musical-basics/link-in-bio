@@ -19,12 +19,32 @@
  *   scripts/owner.mjs PATCH /groups/<id> '{"description":"…"}'
  *   scripts/owner.mjs PUT /groups/order '{"ids":["…"]}'
  *   scripts/owner.mjs PATCH /profile '{"bio":"…"}'
+ *
+ * Changing the password (the new one comes from the environment, never argv):
+ *   MB_NEW_PASSWORD='…' node --env-file=.env.local scripts/owner.mjs set-password
+ * Prints only success or the error; then store the new password where
+ * ADMIN_PASSWORD / MB_OWNER_PASSWORD come from, or the next call gets 401.
  */
 
-const [method = '', path = '', body] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const setPassword = args[0] === 'set-password';
+let [method = '', path = '', body] = args;
+if (setPassword) {
+    if (args.length > 1) {
+        console.error('set-password takes no arguments: put the new password in MB_NEW_PASSWORD.');
+        process.exit(2);
+    }
+    const next = process.env.MB_NEW_PASSWORD;
+    if (!next) {
+        console.error('Set MB_NEW_PASSWORD in the environment to the new password.');
+        process.exit(2);
+    }
+    [method, path, body] = ['POST', '/password', JSON.stringify({ password: next })];
+}
 const METHODS = ['GET', 'POST', 'PATCH', 'PUT'];
 if (!METHODS.includes(method.toUpperCase()) || !path.startsWith('/')) {
     console.error("usage: node --env-file=.env.local scripts/owner.mjs <GET|POST|PATCH|PUT> </path> ['<json>']");
+    console.error("       MB_NEW_PASSWORD=… node --env-file=.env.local scripts/owner.mjs set-password");
     process.exit(2);
 }
 
@@ -60,6 +80,15 @@ if (res.status >= 300 && res.status < 400) {
     process.exit(1);
 }
 const text = await res.text();
+if (setPassword) {
+    // Server errors never contain the password; success prints nothing from the response.
+    if (res.ok) {
+        console.log('Password changed. Update ADMIN_PASSWORD / MB_OWNER_PASSWORD to the new password before the next call.');
+        process.exit(0);
+    }
+    console.error(`HTTP ${res.status}: ${text}`);
+    process.exit(1);
+}
 let out = text;
 try {
     out = JSON.stringify(JSON.parse(text), null, 2);
