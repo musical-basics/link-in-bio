@@ -19,6 +19,7 @@ import {
     updateLink,
     updateProfileText,
 } from './store.ts';
+import { changePassword } from './password.ts';
 
 const url = process.env.TEST_DATABASE_URL;
 const basic = (email: string, password: string) => 'Basic ' + Buffer.from(`${email}:${password}`).toString('base64');
@@ -171,6 +172,24 @@ describe('owner API (database)', { skip: !url && 'TEST_DATABASE_URL not set' }, 
             assert.equal((await updateLink(db, ada.id, a.id, { isActive: false })).isActive, false);
             const profile = await updateProfileText(db, ada.id, { bio: 'Pianist.' });
             assert.equal(profile.bio, 'Pianist.');
+        });
+    });
+
+    describe('password change', () => {
+        test('new password works, old one stops working, other users untouched', async () => {
+            const eveHash = (await db.user.findUnique({ where: { id: eve.id } }))!.password;
+            await changePassword(db, ada.id, 'a-brand-new-password', 'ada-password');
+            assert.equal(await authenticateOwner(db, basic('ada@example.com', 'ada-password')), null);
+            assert.equal((await authenticateOwner(db, basic('ada@example.com', 'a-brand-new-password')))?.id, ada.id);
+            assert.equal((await db.user.findUnique({ where: { id: eve.id } }))!.password, eveHash);
+            assert.match((await db.user.findUnique({ where: { id: ada.id } }))!.password!, /^\$2[aby]\$10\$/);
+        });
+        test('rejects too short, too long and unchanged, leaving the password as it was', async () => {
+            const bad = (e: unknown) => e instanceof OwnerError && e.status === 400;
+            await assert.rejects(changePassword(db, ada.id, 'short', 'ada-password'), bad);
+            await assert.rejects(changePassword(db, ada.id, 'x'.repeat(201), 'ada-password'), bad);
+            await assert.rejects(changePassword(db, ada.id, 'ada-password', 'ada-password'), bad);
+            assert.equal((await authenticateOwner(db, basic('ada@example.com', 'ada-password')))?.id, ada.id);
         });
     });
 });
