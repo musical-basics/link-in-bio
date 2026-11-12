@@ -90,3 +90,7 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   `owner.mjs set-password` (MB_NEW_PASSWORD from env), landed 6946de7; I set a random 24-char password and wrote it to
   .env.local ADMIN_PASSWORD (old one now rejected). Decision #285: rotate AUTH_SECRET to sign everyone out (JWT
   sessions from the leaked password last up to 30 days). AUTH_SECRET also signs the 15-minute UP link token only.
+- 11-12: Brief #474 (todo #274 done): his 18:06 sign-in logged outcome linked, photo true, photoBackfilled true (the
+  picture came in the ID token; userinfo not needed). musical.bio/djsputty carries a Clerk uploaded-image URL that
+  loads (classic theme's avatar swaps the image in client-side, so raw HTML shows the fallback). UP sign-in fully
+  proven; briefs #404 #474 closed. Open: todo #284 (watcher waiting), decision #285.
