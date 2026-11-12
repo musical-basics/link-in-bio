@@ -76,3 +76,7 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   fills in at the next sign-in once UP sends one (UP's manager told by the commander). Closed briefs #49 #57 #72 #121
   #333. His "all access tier" line in #333 is Ultimate Pianist's; Musical Bio has no tiers. Nothing running.
   Check sign-ins: `vercel logs --environment production --no-branch --since 6h -q "Ultimate Pianist" -x`.
+- 11-12: Brief #404: UP shipped photo upload; it sets the Clerk user's image (their STATE.md: `has_image`,
+  `avatar_url` = Clerk `image_url`), so Clerk's userinfo should carry `picture`. Lionel todo #274: sign in once more
+  as the test account. After: the log line should say photo true, photoBackfilled true, and musical.bio/djsputty
+  should show an img.clerk.com image; then report #404 done.
