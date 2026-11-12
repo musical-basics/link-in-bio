@@ -9,7 +9,7 @@ A new manager reads this first. Manager session: `link-in-bio-app-6d` (since 11-
 | bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | None (not running since 11-09; last work, the A/B close, landed) |
 | bio-accounts | 8607e460 (fresh 11-12; older: e651243f) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | Owner API password change, landed 11-12; idle |
 
-Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermissions --model claude-opus-5-5 --effort high "<brief>"`.
+Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypassPermissions --model claude-sonnet-5-5 --effort high "<brief>"` (Opus only when the job needs it; protocol 1.7). Both standing workers are registered on the Organization chart (`cmdr agent`).
 `ListAgents` before any resume; a listed worker is alive, so SendMessage it.
 
 ## Rules and rulings
