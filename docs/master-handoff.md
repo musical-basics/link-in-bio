@@ -7,7 +7,7 @@ A new manager reads this first. Manager session: `link-in-bio-app-6d` (since 11-
 | Name | Session id | Worktree | Owns | Current task |
 | --- | --- | --- | --- | --- |
 | bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | None (not running since 11-09; last work, the A/B close, landed) |
-| bio-accounts | e651243f (copy of 6c7bbe8f-8bc9-48c1-8d02-93a57401869a, started with --effort high) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | None (not running since 11-09; photo fix landed 11-11) |
+| bio-accounts | 8607e460 (fresh 11-12; older: e651243f) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | Owner API password change, landed 11-12; idle |
 
 Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermissions --model claude-opus-5-5 --effort high "<brief>"`.
 `ListAgents` before any resume; a listed worker is alive, so SendMessage it.
@@ -80,3 +80,13 @@ Start a worker: `claude --bg -w <name> -n <name> --permission-mode bypassPermiss
   `avatar_url` = Clerk `image_url`), so Clerk's userinfo should carry `picture`. Lionel todo #274: sign in once more
   as the test account. After: the log line should say photo true, photoBackfilled true, and musical.bio/djsputty
   should show an img.clerk.com image; then report #404 done.
+- 11-12: Brief #416 (leaked shared password, DreamPlay todo #277). Prod DATABASE_URL/DIRECT_URL (project
+  flpbvurtkdnluyoqqtgn, one password in both) live only in Vercel and are pullable; .env/.env.local DB URLs are local.
+  The bio page is force-dynamic, so it errors from the DB reset until Vercel has the new password. Lionel todo #284:
+  he resets it and appends `NEW_DB_PASSWORD=` to .env.local; a watcher in this manager's session runs a script that
+  `vercel env update`s both URLs (stdin + target production keeps all three environments), re-pulls to compare,
+  redeploys, checks /lionelyu, then deletes the line. If this session is gone: do those steps by hand.
+  His musical.bio login password: no change-password page existed, so bio-accounts added POST /api/owner/password +
+  `owner.mjs set-password` (MB_NEW_PASSWORD from env), landed 6946de7; I set a random 24-char password and wrote it to
+  .env.local ADMIN_PASSWORD (old one now rejected). Decision #285: rotate AUTH_SECRET to sign everyone out (JWT
+  sessions from the leaked password last up to 30 days). AUTH_SECRET also signs the 15-minute UP link token only.
