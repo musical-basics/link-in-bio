@@ -94,3 +94,4 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   picture came in the ID token; userinfo not needed). musical.bio/djsputty carries a Clerk uploaded-image URL that
   loads (classic theme's avatar swaps the image in client-side, so raw HTML shows the fallback). UP sign-in fully
   proven; briefs #404 #474 closed. Open: todo #284 (watcher waiting), decision #285.
+- 11-13: Decision #285 → no (brief #512): AUTH_SECRET stays; nobody signed out. Open: todo #284 (watcher waiting).
