@@ -95,3 +95,9 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   loads (classic theme's avatar swaps the image in client-side, so raw HTML shows the fallback). UP sign-in fully
   proven; briefs #404 #474 closed. Open: todo #284 (watcher waiting), decision #285.
 - 11-13: Decision #285 → no (brief #512): AUTH_SECRET stays; nobody signed out. Open: todo #284 (watcher waiting).
+- 11-13: Brief #513 (todo #284 done). He pasted the new DB password into the local DATABASE_URL/DIRECT_URL lines of
+  .env.local (localhost addresses) instead of a NEW_DB_PASSWORD line, so the watcher never fired; bio page 500 from
+  ~05:22 to 05:24. Took the password from those lines, updated Vercel (both URLs, all envs, re-pulled to compare),
+  redeployed, verified bio/test bio/login 200 and an owner API read. Those local lines still hold it (git-ignored).
+  Lesson: a todo that asks him to paste into a file should accept any sensible spot, and the watcher should watch for
+  the file changing, not one exact line. Closed #416 #513. Nothing open.
