@@ -1,6 +1,6 @@
 # Musical Bio — manager handoff
 
-A new manager reads this first. Manager session: `link-in-bio-app-6d` (since 11-11; before that `bio-manager`). Hub key: `bio` (`cmdr inbox bio`).
+A new manager reads this first. Manager session: `link-in-bio-app-4e` (since the 11-17 restart; before that `link-in-bio-app-6d`, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
 
 ## Workers
 
@@ -101,3 +101,4 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   redeployed, verified bio/test bio/login 200 and an owner API read. Those local lines still hold it (git-ignored).
   Lesson: a todo that asks him to paste into a file should accept any sensible spot, and the watcher should watch for
   the file changing, not one exact line. Closed #416 #513. Nothing open.
+- 11-17: Mac restarted (brief #722). Nothing of Musical Bio's runs on the Mac: site, sign-in, owner API and the 12-hour report cron (Vercel) all checked OK; bio-accounts was idle with no open work, so not restarted. Org chart now reports to link-in-bio-app-4e.
