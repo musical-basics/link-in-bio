@@ -134,3 +134,6 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   send items (the 12-hour A/B report email goes only to him).
 - 11-18: Brief #998: protocol 1.15 (credit/money questions say what is left and what this uses) noted under Rules.
   No open Musical Bio spend items.
+- 11-18: Brief #1135 (for DreamPlay's blog author page): sent the commander the portfolio's address and where its
+  bio text (~/Documents/Lionel Portfolio/index.html, story and work sections; /resume) and photos (assets/images/,
+  author photo lionel-stage.jpg) live. Nothing changed here.
