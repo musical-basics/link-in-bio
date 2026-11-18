@@ -20,6 +20,8 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - Protocol 1.10 (11-18, brief #736): each time Lionel finishes one of our items (todo done, decision answered,
   review looked at), file three new items for Musical Bio: improvements, feature suggestions or next steps. Real ideas,
   no repeats of open items, every item rule still applies. His close briefs end "Next three".
+  Each suggestion offers "Not now" and "Not needed" (1.13, brief #875; `cmdr ask` adds "Not needed" to any item
+  with "Not now"). Not now may come back later; Not needed goes in the list below and is never suggested again.
 - Protocol 1.11/1.12 (11-18, briefs #819, #849): a worker with more than three tasks waiting gets a helper worker
   (split the tasks, register it with `cmdr agent`). Start helpers one at a time, only while `sysctl -n vm.loadavg`'s
   first number is under 150 and `pmset -g therm` shows no heat warning; otherwise keep them queued and say so in the
@@ -29,6 +31,10 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-09: Ultimate Pianist users get both: the existing signup stays, "Sign in with Ultimate Pianist" is added, and
   people arriving from Ultimate Pianist are offered an auto-created bio (need #25). Depends on Ultimate Pianist's
   sign-in, which its manager is designing; anything needed from that side goes through the commander.
+
+## Suggestions he marked Not needed (never suggest again)
+
+- None yet.
 
 ## Facts that cost time
 
@@ -117,3 +123,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   Bio's was running), no heat warning. The org chart has nothing wrong for bio.
 - 11-18: Brief #849: protocol 1.12 raises the Mac's limit to load 150 and heavy runs to nice 19; Rules updated.
   Nothing of Musical Bio's running or queued.
+- 11-18: Brief #875: protocol 1.13 (suggestions offer Not now and Not needed) noted under Rules, with a Not needed
+  list above. No open Musical Bio suggestions to change.
