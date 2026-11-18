@@ -20,11 +20,11 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - Protocol 1.10 (11-18, brief #736): each time Lionel finishes one of our items (todo done, decision answered,
   review looked at), file three new items for Musical Bio: improvements, feature suggestions or next steps. Real ideas,
   no repeats of open items, every item rule still applies. His close briefs end "Next three".
-- Protocol 1.11 (11-18, brief #819): a worker with more than three tasks waiting gets a helper worker (split the
-  tasks, register it with `cmdr agent`), but only while `sysctl -n vm.loadavg`'s first number is under 20 and
-  `pmset -g therm` shows no warning; otherwise keep them queued and say so in the report. Tests, renders and
-  simulations run under `nice -n 15`, one at a time per worker, wait while the load is over 20, and nothing is left
-  running afterwards.
+- Protocol 1.11/1.12 (11-18, briefs #819, #849): a worker with more than three tasks waiting gets a helper worker
+  (split the tasks, register it with `cmdr agent`). Start helpers one at a time, only while `sysctl -n vm.loadavg`'s
+  first number is under 150 and `pmset -g therm` shows no heat warning; otherwise keep them queued and say so in the
+  report. Tests, renders and simulations run under `nice -n 19` and pause while the load is over 150 or on a heat
+  warning (no longer one at a time per worker). Nothing is left running afterwards.
 - 11-09: Portfolio link goes at the bottom of his bio (need #24).
 - 11-09: Ultimate Pianist users get both: the existing signup stays, "Sign in with Ultimate Pianist" is added, and
   people arriving from Ultimate Pianist are offered an auto-created bio (need #25). Depends on Ultimate Pianist's
@@ -115,3 +115,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-18: Brief #819: protocol 1.11 (helper workers when the Mac has room; heavy runs niced) noted under Rules.
   Both workers idle, no tasks waiting, so no helper. At the check the load was 135 (not ours: nothing of Musical
   Bio's was running), no heat warning. The org chart has nothing wrong for bio.
+- 11-18: Brief #849: protocol 1.12 raises the Mac's limit to load 150 and heavy runs to nice 19; Rules updated.
+  Nothing of Musical Bio's running or queued.
