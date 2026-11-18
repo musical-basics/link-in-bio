@@ -22,6 +22,9 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   no repeats of open items, every item rule still applies. His close briefs end "Next three".
   Each suggestion offers "Not now" and "Not needed" (1.13, brief #875; `cmdr ask` adds "Not needed" to any item
   with "Not now"). Not now may come back later; Not needed goes in the list below and is never suggested again.
+- Protocol 1.14 (11-18, brief #931): any item asking him to send or schedule an email, text or post to a list says, in
+  the question itself, how many people it goes to and which part of the audience (e.g. "1,240 people: the engaged
+  list who haven't reserved").
 - Protocol 1.11/1.12 (11-18, briefs #819, #849): a worker with more than three tasks waiting gets a helper worker
   (split the tasks, register it with `cmdr agent`). Start helpers one at a time, only while `sysctl -n vm.loadavg`'s
   first number is under 150 and `pmset -g therm` shows no heat warning; otherwise keep them queued and say so in the
@@ -125,3 +128,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   Nothing of Musical Bio's running or queued.
 - 11-18: Brief #875: protocol 1.13 (suggestions offer Not now and Not needed) noted under Rules, with a Not needed
   list above. No open Musical Bio suggestions to change.
+- 11-18: Brief #931: protocol 1.14 (send questions say how many and who) noted under Rules. No open Musical Bio
+  send items (the 12-hour A/B report email goes only to him).
