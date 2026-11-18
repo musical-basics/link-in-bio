@@ -25,6 +25,8 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - Protocol 1.14 (11-18, brief #931): any item asking him to send or schedule an email, text or post to a list says, in
   the question itself, how many people it goes to and which part of the audience (e.g. "1,240 people: the engaged
   list who haven't reserved").
+- Protocol 1.15 (11-18, brief #998): any item asking him to approve spending credits or money on a service (Vercel or
+  Supabase plan, ads, etc.) says, in the question itself, how much is left now and what this uses.
 - Protocol 1.11/1.12 (11-18, briefs #819, #849): a worker with more than three tasks waiting gets a helper worker
   (split the tasks, register it with `cmdr agent`). Start helpers one at a time, only while `sysctl -n vm.loadavg`'s
   first number is under 150 and `pmset -g therm` shows no heat warning; otherwise keep them queued and say so in the
@@ -130,3 +132,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   list above. No open Musical Bio suggestions to change.
 - 11-18: Brief #931: protocol 1.14 (send questions say how many and who) noted under Rules. No open Musical Bio
   send items (the 12-hour A/B report email goes only to him).
+- 11-18: Brief #998: protocol 1.15 (credit/money questions say what is left and what this uses) noted under Rules.
+  No open Musical Bio spend items.
