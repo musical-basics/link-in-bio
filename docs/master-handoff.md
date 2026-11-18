@@ -17,6 +17,9 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - `main` deploys production (Vercel). musical.bio/lionelyu is Lionel's social landing page: it must not break.
 - Workers push branches; only the manager merges to main. No production migrations without a report first.
 - New decisions/todos go only into the hub (`cmdr ask` / `cmdr todo`); reports name them by number, not contents (Lionel, 11-09).
+- Protocol 1.10 (11-18, brief #736): each time Lionel finishes one of our items (todo done, decision answered,
+  review looked at), file three new items for Musical Bio: improvements, feature suggestions or next steps. Real ideas,
+  no repeats of open items, every item rule still applies. His close briefs end "Next three".
 - 11-09: Portfolio link goes at the bottom of his bio (need #24).
 - 11-09: Ultimate Pianist users get both: the existing signup stays, "Sign in with Ultimate Pianist" is added, and
   people arriving from Ultimate Pianist are offered an auto-created bio (need #25). Depends on Ultimate Pianist's
@@ -102,3 +105,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   Lesson: a todo that asks him to paste into a file should accept any sensible spot, and the watcher should watch for
   the file changing, not one exact line. Closed #416 #513. Nothing open.
 - 11-17: Mac restarted (brief #722). Nothing of Musical Bio's runs on the Mac: site, sign-in, owner API and the 12-hour report cron (Vercel) all checked OK; bio-accounts was idle with no open work, so not restarted. Org chart now reports to link-in-bio-app-4e.
+- 11-18: Brief #736: protocol 1.10 (three new items per item he finishes) noted under Rules. The Army server restart in
+  the same words is not ours. Nothing he finished since the rule, so nothing filed yet.
