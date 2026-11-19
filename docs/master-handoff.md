@@ -26,6 +26,10 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - Protocol 1.14 (11-18, brief #931): any item asking him to send or schedule an email, text or post to a list says, in
   the question itself, how many people it goes to and which part of the audience (e.g. "1,240 people: the engaged
   list who haven't reserved").
+- Protocol 1.18 (11-19, brief #1552): stop only your own processes, by PID (`kill <pid>`, saved when started) or an
+  exact name (`pkill -x`). Never `pkill`/`killall` with `-P` or a pattern: on this Mac `pkill -f '<pattern>' -P 1`
+  ignores the pattern and ended everything macOS started (Docker, the hub, every session) on 11-19. Put this line in
+  every worker brief.
 - Protocol 1.16 (11-18): any email to a list goes out staggered: 150 people (versions split evenly, e.g. 50 each of
   three), 150 the next day, 150 the day after; the rest only after 3 to 4 days with no issues. The send question says
   this plan. (Musical Bio sends no list email today; the 12-hour report goes only to him.)
@@ -160,3 +164,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   org chart moved to -b4.
 - 11-19: Brief #1528 (awareness): a new Domains project (domains-manager) moves musical.bio from Namecheap to
   Cloudflare. Measured the DNS the site needs ahead of its ask (Facts above) and sent it in report.
+- 11-19: Brief #1552: protocol 1.18 (stop processes by PID only) noted under Rules. Neither worker is running, so
+  they get it in their next brief.
