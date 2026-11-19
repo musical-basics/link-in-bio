@@ -1,6 +1,6 @@
 # Musical Bio — manager handoff
 
-A new manager reads this first. Manager session: `link-in-bio-app-4e` (since the 11-17 restart; before that `link-in-bio-app-6d`, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
+A new manager reads this first. Manager session: `link-in-bio-app-fd` (since the 11-19 restart; `link-in-bio-app-4e` from 11-17, `link-in-bio-app-6d` before that, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
 
 ## Workers
 
@@ -137,3 +137,6 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-18: Brief #1135 (for DreamPlay's blog author page): sent the commander the portfolio's address and where its
   bio text (~/Documents/Lionel Portfolio/index.html, story and work sections; /resume) and photos (assets/images/,
   author photo lionel-stage.jpg) live. Nothing changed here.
+- 11-19: Mac restarted ~09:18; this session is now link-in-bio-app-fd, the commander lionel-command-center-43. Nothing
+  of Musical Bio's runs on the Mac. Checked: bio page, /login, /signup, the ?from= door all 200, both sign-in
+  providers listed, owner API read OK, main matches GitHub. Workers idle, not restarted; org chart now reports to -fd.
