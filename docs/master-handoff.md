@@ -47,6 +47,15 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 
 ## Facts that cost time
 
+- DNS for the Cloudflare move (measured 11-19, brief #1528; Namecheap nameservers dns1/dns2.registrar-servers.com,
+  TTL 30 min). The site needs only two records, both DNS only (grey cloud), since Vercel issues the certificates and
+  sends the bare domain to www:
+  `musical.bio A 216.198.79.1` and `www.musical.bio CNAME a3282ea157ea5f1b.vercel-dns-017.com`.
+  Also present: 5 MX `eforward1-5.registrar-servers.com` + TXT `v=spf1 include:spf.efwd.registrar-servers.com ~all`
+  = Namecheap email forwarding, which stops when the nameservers move. The app uses no musical.bio mailbox (the
+  12-hour report goes out through Resend; no Resend records on musical.bio). No DNSSEC (no DS record). Vercel has the
+  domain as third-party DNS, so nothing changes on Vercel.
+
 - The checkout's `.env` DATABASE_URL is a local Postgres (localhost:5432), not production. The production Supabase
   pooler is unreachable from this Mac (outbound Postgres blocked). Production data changes go through the admin
   (Lionel signs in) or a deployed route, never a local script. Workers don't sign in with his password.
@@ -149,3 +158,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-19: Hub was down (Docker stopped), back up; this session is now link-in-bio-app-b4, the commander
   lionel-command-center-3d. No bio report or item was lost (all briefs through #1462 done). Site, owner API OK; card and
   org chart moved to -b4.
+- 11-19: Brief #1528 (awareness): a new Domains project (domains-manager) moves musical.bio from Namecheap to
+  Cloudflare. Measured the DNS the site needs ahead of its ask (Facts above) and sent it in report.
