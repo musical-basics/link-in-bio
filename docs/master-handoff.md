@@ -1,6 +1,6 @@
 # Musical Bio — manager handoff
 
-A new manager reads this first. Manager session: `link-in-bio-app-fd` (since the 11-19 restart; `link-in-bio-app-4e` from 11-17, `link-in-bio-app-6d` before that, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
+A new manager reads this first. Manager session: `link-in-bio-app-b4` (since the hub came back on 11-19; `link-in-bio-app-fd` earlier that day, `link-in-bio-app-4e` from 11-17, `link-in-bio-app-6d` before that, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
 
 ## Workers
 
@@ -146,3 +146,6 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   providers listed, owner API read OK, main matches GitHub. Workers idle, not restarted; org chart now reports to -fd.
 - 11-19: Brief #1462: protocol 1.17, two new items per finished one (was three); Rules updated, with 1.16 (staggered
   list emails) added too.
+- 11-19: Hub was down (Docker stopped), back up; this session is now link-in-bio-app-b4, the commander
+  lionel-command-center-3d. No bio report or item was lost (all briefs through #1462 done). Site, owner API OK; card and
+  org chart moved to -b4.
