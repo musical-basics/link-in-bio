@@ -17,14 +17,18 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - `main` deploys production (Vercel). musical.bio/lionelyu is Lionel's social landing page: it must not break.
 - Workers push branches; only the manager merges to main. No production migrations without a report first.
 - New decisions/todos go only into the hub (`cmdr ask` / `cmdr todo`); reports name them by number, not contents (Lionel, 11-09).
-- Protocol 1.10 (11-18, brief #736): each time Lionel finishes one of our items (todo done, decision answered,
-  review looked at), file three new items for Musical Bio: improvements, feature suggestions or next steps. Real ideas,
-  no repeats of open items, every item rule still applies. His close briefs end "Next three".
+- Protocol 1.10/1.17 (11-18 brief #736; 11-19 brief #1462): each time Lionel finishes one of our items (todo done,
+  decision answered, review looked at), file TWO new items for Musical Bio (three until 1.17): improvements, feature
+  suggestions or next steps. Real ideas, no repeats of open items, every item rule still applies. His close briefs
+  end "Next two".
   Each suggestion offers "Not now" and "Not needed" (1.13, brief #875; `cmdr ask` adds "Not needed" to any item
   with "Not now"). Not now may come back later; Not needed goes in the list below and is never suggested again.
 - Protocol 1.14 (11-18, brief #931): any item asking him to send or schedule an email, text or post to a list says, in
   the question itself, how many people it goes to and which part of the audience (e.g. "1,240 people: the engaged
   list who haven't reserved").
+- Protocol 1.16 (11-18): any email to a list goes out staggered: 150 people (versions split evenly, e.g. 50 each of
+  three), 150 the next day, 150 the day after; the rest only after 3 to 4 days with no issues. The send question says
+  this plan. (Musical Bio sends no list email today; the 12-hour report goes only to him.)
 - Protocol 1.15 (11-18, brief #998): any item asking him to approve spending credits or money on a service (Vercel or
   Supabase plan, ads, etc.) says, in the question itself, how much is left now and what this uses.
 - Protocol 1.11/1.12 (11-18, briefs #819, #849): a worker with more than three tasks waiting gets a helper worker
@@ -140,3 +144,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-19: Mac restarted ~09:18; this session is now link-in-bio-app-fd, the commander lionel-command-center-43. Nothing
   of Musical Bio's runs on the Mac. Checked: bio page, /login, /signup, the ?from= door all 200, both sign-in
   providers listed, owner API read OK, main matches GitHub. Workers idle, not restarted; org chart now reports to -fd.
+- 11-19: Brief #1462: protocol 1.17, two new items per finished one (was three); Rules updated, with 1.16 (staggered
+  list emails) added too.
