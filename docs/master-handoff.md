@@ -17,11 +17,10 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - `main` deploys production (Vercel). musical.bio/lionelyu is Lionel's social landing page: it must not break.
 - Workers push branches; only the manager merges to main. No production migrations without a report first.
 - New decisions/todos go only into the hub (`cmdr ask` / `cmdr todo`); reports name them by number, not contents (Lionel, 11-09).
-- Protocol 1.10/1.17 (11-18 brief #736; 11-19 brief #1462): each time Lionel finishes one of our items (todo done,
-  decision answered, review looked at), file TWO new items for Musical Bio (three until 1.17): improvements, feature
-  suggestions or next steps. Real ideas, no repeats of open items, every item rule still applies. His close briefs
-  end "Next two".
-  Each suggestion offers "Not now" and "Not needed" (1.13, brief #875; `cmdr ask` adds "Not needed" to any item
+- Protocol 1.19 (11-19, brief #1569; replaces 1.10/1.17, which asked for three, then two, new items per close): when
+  Lionel finishes one of our items, file NO follow-up suggestions. Finish open threads and items; file an item only
+  when the work itself needs him (a decision it can't go on without, a todo only he can do, something to try or see).
+  Any suggestion we do file offers "Not now" and "Not needed" (1.13, brief #875; `cmdr ask` adds "Not needed" to any item
   with "Not now"). Not now may come back later; Not needed goes in the list below and is never suggested again.
 - Protocol 1.14 (11-18, brief #931): any item asking him to send or schedule an email, text or post to a list says, in
   the question itself, how many people it goes to and which part of the audience (e.g. "1,240 people: the engaged
@@ -166,3 +165,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   Cloudflare. Measured the DNS the site needs ahead of its ask (Facts above) and sent it in report.
 - 11-19: Brief #1552: protocol 1.18 (stop processes by PID only) noted under Rules. Neither worker is running, so
   they get it in their next brief.
+- 11-19: Brief #1569: protocol 1.19, no new items per close (1.10/1.17 retired). Musical Bio owed none and has no
+  open items or threads.
