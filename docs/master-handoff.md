@@ -25,6 +25,9 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - Protocol 1.14 (11-18, brief #931): any item asking him to send or schedule an email, text or post to a list says, in
   the question itself, how many people it goes to and which part of the audience (e.g. "1,240 people: the engaged
   list who haven't reserved").
+- Group related open items (11-19, brief #1586): `cmdr group "Topic in his terms" N N N`, 3 to 5 items of one kind
+  (all decisions, all todos or all reviews) about the same thing; `--into G` adds one; `cmdr group --list bio`. An
+  item with no like items stays alone, never pad. Group related items as they are filed.
 - Protocol 1.18 (11-19, brief #1552): stop only your own processes, by PID (`kill <pid>`, saved when started) or an
   exact name (`pkill -x`). Never `pkill`/`killall` with `-P` or a pattern: on this Mac `pkill -f '<pattern>' -P 1`
   ignores the pattern and ended everything macOS started (Docker, the hub, every session) on 11-19. Put this line in
@@ -167,3 +170,4 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   they get it in their next brief.
 - 11-19: Brief #1569: protocol 1.19, no new items per close (1.10/1.17 retired). Musical Bio owed none and has no
   open items or threads.
+- 11-19: Brief #1586: grouping rule noted. Musical Bio has no open decisions, todos or reviews, so 0 groups.
