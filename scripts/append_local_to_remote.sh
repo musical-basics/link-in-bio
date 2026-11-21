@@ -3,11 +3,15 @@
 # --- CONFIGURATION ---
 
 # 1. Local Docker Database (Source)
-LOCAL_DB_URL="postgresql://postgres:password@localhost:5432/postgres"
+LOCAL_DB_URL="${LOCAL_DB_URL:-postgresql://postgres@localhost:5432/postgres}"  # no password in the file
 
 # 2. Remote Supabase Database (Destination)
-# Using DIRECT_URL from .env.production as it is more reliable for migrations/dumps
-REMOTE_DB_URL="postgresql://postgres.flpbvurtkdnluyoqqtgn:sorenkier23@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
+# Set REMOTE_DATABASE_URL in the environment (e.g. the DIRECT_URL from .env.production); never write it in this file.
+if [ -z "$REMOTE_DATABASE_URL" ]; then
+    echo "❌ Error: set REMOTE_DATABASE_URL to the remote Postgres URL before running this script."
+    exit 2
+fi
+REMOTE_DB_URL="$REMOTE_DATABASE_URL"
 
 # 3. Which tables do you want to sync?
 # Order matters because of foreign keys (User first)
@@ -40,7 +44,7 @@ echo "2. Transforming data to 'Safe Append' mode..."
 sed -i '' '/^INSERT INTO/s/);$/) ON CONFLICT DO NOTHING;/g' temp_merge.sql
 
 echo "3. Uploading to Remote Supabase DB..."
-echo "   Target: $REMOTE_DB_URL"
+echo "   Target: $(printf '%s' "$REMOTE_DB_URL" | sed -E 's#(://[^:/@]+):[^@]*@#\1:****@#')"
 echo "   Tables: ${TABLES_TO_SYNC[*]}"
 read -p "⚠️  Are you sure you want to write to REMOTE? (y/n) " -n 1 -r
 echo

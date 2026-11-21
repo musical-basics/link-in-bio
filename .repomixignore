@@ -36,7 +36,5 @@ __pycache__/
 temp/
 old_data.sql
 repomix-output.*
-migrate_storage.py
-debug_storage.py
 debug-db.ts
 generate-hash.js
