@@ -17,6 +17,11 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - `main` deploys production (Vercel). musical.bio/lionelyu is Lionel's social landing page: it must not break.
 - Workers push branches; only the manager merges to main. No production migrations without a report first.
 - New decisions/todos go only into the hub (`cmdr ask` / `cmdr todo`); reports name them by number, not contents (Lionel, 11-09).
+- Protocol 1.20 (11-20, brief #1831, his voice memo): start small and feel the way. For Musical Bio: a big change to a
+  bio page (new look, layout, link order) or the signup / Ultimate Pianist door goes to half the visitors first,
+  using the kept A/B system (`lib/ab/registry.ts`: `closedOn: null`, new ids; see docs/ab-testing.md); small fixes
+  ship directly. Every test and its result goes in the Test log at the top of docs/ab-testing.md. About 9 bio-page
+  sessions a day, so a split runs for weeks. Musical Bio sends no list email and runs no ads.
 - Protocol 1.19 (11-19, brief #1569; replaces 1.10/1.17, which asked for three, then two, new items per close): when
   Lionel finishes one of our items, file NO follow-up suggestions. Finish open threads and items; file an item only
   when the work itself needs him (a decision it can't go on without, a todo only he can do, something to try or see).
@@ -171,3 +176,5 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-19: Brief #1569: protocol 1.19, no new items per close (1.10/1.17 retired). Musical Bio owed none and has no
   open items or threads.
 - 11-19: Brief #1586: grouping rule noted. Musical Bio has no open decisions, todos or reviews, so 0 groups.
+- 11-20: Brief #1831: protocol 1.20 (start small) applied: big changes go 50/50 on the kept A/B system; added a
+  Test log to docs/ab-testing.md (test 1 recorded). Nothing in flight changes.

@@ -1,5 +1,15 @@
 # musical.bio A/B testing system — operator guide
 
+## Test log
+
+Every test of a change that reaches real visitors is recorded here, with its result (Lionel's protocol 1.20,
+2026-11-20: big changes go to half the visitors first; small fixes need no split). Traffic to measure against:
+the bio page drew 899 sessions in the 14 weeks of test 1 (about 9 a day), so a test needs weeks, not days.
+
+| # | dates | what was tested | result |
+|---|---|---|---|
+| 1 | 2026-08-04 → 2026-11-09 | Bio page look (Cinematic vs Classic light) and link order (own vs YouTube first) | Cinematic won (+0.74 pts, bounce −7.4 pts); order: noise. Details below. |
+
 ## Status: closed on 2026-11-09
 
 The bio-page test ran from 2026-08-04 to 2026-11-09 (Lionel's instruction #61, brief #85).
