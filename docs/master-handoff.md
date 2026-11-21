@@ -6,7 +6,7 @@ A new manager reads this first. Manager session: `link-in-bio-app-2b` (since the
 
 | Name | Session id | Worktree | Owns | Current task |
 | --- | --- | --- | --- | --- |
-| bio-site | b916dbe6 (11-21; older 8e6dc829) | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | Dashboard: nightly bio visitors (brief #1850), branch feat/dashboard-bio-visits |
+| bio-site | b916dbe6 (11-21; older 8e6dc829) | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | Dashboard feed landed 11-21 (dacd74e); idle |
 | bio-accounts | 8607e460 (fresh 11-12; older: e651243f) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | Owner API password change, landed 11-12; idle |
 
 Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypassPermissions --model claude-sonnet-5-5 --effort high "<brief>"` (Opus only when the job needs it; protocol 1.7). Both standing workers are registered on the Organization chart (`cmdr agent`).
@@ -57,6 +57,16 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - None yet.
 
 ## Facts that cost time
+
+- The one thing of Musical Bio's that runs on the Mac: LaunchAgent `com.musicalbio.dashboard-bio` (plist in
+  scripts/launchd/, installed in ~/Library/LaunchAgents, survives restarts) runs `scripts/dashboard-bio.mjs` from the
+  main checkout at 00:20 nightly and writes ~/.config/lionel-dashboard/bio/<date>.json (yesterday, ET day; backfills
+  up to 6 missing days). Log: ~/Library/Logs/musicalbio-dashboard-bio.log. Check: `launchctl print
+  gui/$(id -u)/com.musicalbio.dashboard-bio` (last exit code 0). It needs MB_OWNER_EMAIL + ADMIN_PASSWORD in
+  .env.local and the owner route GET /api/owner/stats/visits. Notes: docs/notes/dashboard.md.
+- The GitHub repo is PUBLIC. No personal details in tracked files. His login email was hard-coded in
+  scripts/owner.mjs from 11-09 until 11-21 (removed in dacd74e; now MB_OWNER_EMAIL in .env.local) and stays in git
+  history; scrubbing history needs a force-push of main, only on his word.
 
 - DNS for the Cloudflare move (measured 11-19, brief #1528; Namecheap nameservers dns1/dns2.registrar-servers.com,
   TTL 30 min). The site needs only two records, both DNS only (grey cloud), since Vercel issues the certificates and
@@ -183,3 +193,7 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   visitors nightly to ~/.config/lionel-dashboard/bio/<date>.json (outside git; numbers never in the hub). Plan: owner
   API GET /api/owner/stats/visits?date= (PostHog key stays in Vercel), scripts/dashboard-bio.mjs, a LaunchAgent at
   00:20. bio-site started on it (b916dbe6, Sonnet).
+- 11-21: Brief #1850 done. bio-site's branch reviewed (asked it to drop the hard-coded login email from both scripts:
+  the repo is public), squash-merged as dacd74e (so the first commit with the email stays out of main), production
+  Ready, route smoke-tested (counts plausible, ~9-14 a day). Worker wrote 11-14..11-20 files (700/600, 4 keys) and
+  installed the LaunchAgent; a kickstarted run exited 0 with no EPERM. Next run 00:20 nightly.
