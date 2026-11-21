@@ -15,9 +15,9 @@
  * A day whose fetch fails is logged and gets no file (never a 0); the script
  * then exits non-zero, after trying the other days.
  *
- * Credentials are the same as scripts/owner.mjs: MB_OWNER_EMAIL, MB_OWNER_PASSWORD
- * (or ADMIN_PASSWORD), MB_BASE_URL (default https://www.musical.bio: the bare
- * domain 307s and drops the credentials). MB_DASHBOARD_BIO_DIR overrides the folder.
+ * Credentials are the same as scripts/owner.mjs: MB_OWNER_EMAIL and MB_OWNER_PASSWORD
+ * (or ADMIN_PASSWORD), both required (no defaults). MB_BASE_URL defaults to
+ * https://www.musical.bio (the bare domain 307s and drops the credentials). MB_DASHBOARD_BIO_DIR overrides the folder.
  */
 import { chmod, mkdir, readdir, rename, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
@@ -56,7 +56,11 @@ async function existingDates() {
     }
 }
 
-const email = process.env.MB_OWNER_EMAIL || 'yulionel829@gmail.com';
+const email = process.env.MB_OWNER_EMAIL;
+if (!email) {
+    fail('Set MB_OWNER_EMAIL (the account email) in the environment, e.g. node --env-file=.env.local scripts/dashboard-bio.mjs');
+    process.exit(2);
+}
 const password = process.env.MB_OWNER_PASSWORD || process.env.ADMIN_PASSWORD;
 if (!password) {
     fail('Set MB_OWNER_PASSWORD (or ADMIN_PASSWORD) in the environment, e.g. node --env-file=.env.local scripts/dashboard-bio.mjs');

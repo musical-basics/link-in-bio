@@ -11,8 +11,8 @@ node --env-file=.env.local scripts/owner.mjs GET /
 node --env-file=.env.local scripts/owner.mjs POST /links '{"title":"Portfolio","url":"https://…","group":"Work"}'
 ```
 
-The credentials come from the environment, by name: `MB_OWNER_EMAIL` (default `yulionel829@gmail.com`) and
-`MB_OWNER_PASSWORD`, which falls back to `ADMIN_PASSWORD` from `.env.local`. `MB_BASE_URL` defaults to
+The credentials come from the environment, by name: `MB_OWNER_EMAIL` (required, no default: the repo is public) and
+`MB_OWNER_PASSWORD`, which falls back to `ADMIN_PASSWORD`; all come from `.env.local`. `MB_BASE_URL` defaults to
 `https://www.musical.bio`: the bare `musical.bio` redirects to `www`, and credentials don't survive a redirect to
 another host, so the CLI refuses redirects. Never pass the password as an argument or print it.
 

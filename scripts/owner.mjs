@@ -5,7 +5,7 @@
  *   node --env-file=.env.local scripts/owner.mjs <METHOD> <path> ['<json body>']
  *
  * Credentials come from the environment, by name, never from arguments:
- *   MB_OWNER_EMAIL     account email (default: yulionel829@gmail.com)
+ *   MB_OWNER_EMAIL     account email (required)
  *   MB_OWNER_PASSWORD  account password (falls back to ADMIN_PASSWORD)
  *   MB_BASE_URL        default https://www.musical.bio (musical.bio redirects there,
  *                      and a redirect to another host drops the credentials)
@@ -48,7 +48,11 @@ if (!METHODS.includes(method.toUpperCase()) || !path.startsWith('/')) {
     process.exit(2);
 }
 
-const email = process.env.MB_OWNER_EMAIL || 'yulionel829@gmail.com';
+const email = process.env.MB_OWNER_EMAIL;
+if (!email) {
+    console.error('Set MB_OWNER_EMAIL (the account email) in the environment, e.g. node --env-file=.env.local …');
+    process.exit(2);
+}
 const password = process.env.MB_OWNER_PASSWORD || process.env.ADMIN_PASSWORD;
 if (!password) {
     console.error('Set MB_OWNER_PASSWORD (or ADMIN_PASSWORD) in the environment, e.g. node --env-file=.env.local …');
