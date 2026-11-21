@@ -33,6 +33,7 @@ sign-in) can't use the API.
 | `PUT /groups/order` | `{"ids": [...]}`: all your group ids, in the new order |
 | `PATCH /profile` | `name`, `bio`, `heroHeadline`, `heroSubtitle`, `showHero` |
 | `POST /password` | `{"password": "<new>"}`: replaces your password (12–200 characters, not the current one). Responds `{"ok": true}` |
+| `GET /stats/visits?date=YYYY-MM-DD` | Read-only: visitors and pageviews on your own bio page over one America/New_York day (default yesterday; 400 for today or later). See `dashboard.md` |
 
 Links are ordered by `order` across the whole page and grouped by group name. Every query is scoped to the
 authenticated user, so another user's id simply returns 404. Errors return JSON: 400 for invalid input (with

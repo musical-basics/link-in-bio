@@ -5,7 +5,7 @@ import type { AbSessionRow } from "./scoring"
  * events are also scrubbed retroactively (events sent before the exclusion
  * existed, or from clients with stale variant cookies).
  */
-function excludedIpFilter(): string {
+export function excludedIpFilter(): string {
     const entries = (process.env.AB_EXCLUDED_IPS ?? "")
         .split(",")
         .map((s) => s.trim().replace(/[^0-9a-fA-F.:]/g, ""))
@@ -19,7 +19,7 @@ function excludedIpFilter(): string {
     return ` AND NOT (${conds.join(" OR ")})`
 }
 
-async function hogql(query: string): Promise<{ results: any[][]; error?: string }> {
+export async function hogql(query: string): Promise<{ results: any[][]; error?: string }> {
     const projectId = process.env.POSTHOG_PROJECT_ID
     const apiKey = process.env.POSTHOG_PERSONAL_API_KEY
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
