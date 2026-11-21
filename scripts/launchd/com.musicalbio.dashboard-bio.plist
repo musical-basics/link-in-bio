@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.musicalbio.dashboard-bio</string>
+
+    <!-- Runs in the main checkout so --env-file=.env.local finds the credentials. -->
+    <key>WorkingDirectory</key>
+    <string>/Users/lionelyu/Documents/New Version/link-in-bio-app</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/lionelyu/.nvm/versions/node/v22.21.1/bin/node</string>
+        <string>--env-file=.env.local</string>
+        <string>scripts/dashboard-bio.mjs</string>
+    </array>
+
+    <!-- 00:20 every night, Mac clock (Eastern). If the Mac was asleep, launchd runs it on wake;
+         the script also backfills any of the previous 6 days that have no file. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>0</integer>
+        <key>Minute</key>
+        <integer>20</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/lionelyu/Library/Logs/musicalbio-dashboard-bio.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/lionelyu/Library/Logs/musicalbio-dashboard-bio.log</string>
+</dict>
+</plist>

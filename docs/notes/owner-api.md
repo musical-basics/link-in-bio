@@ -11,8 +11,8 @@ node --env-file=.env.local scripts/owner.mjs GET /
 node --env-file=.env.local scripts/owner.mjs POST /links '{"title":"Portfolio","url":"https://…","group":"Work"}'
 ```
 
-The credentials come from the environment, by name: `MB_OWNER_EMAIL` (default `yulionel829@gmail.com`) and
-`MB_OWNER_PASSWORD`, which falls back to `ADMIN_PASSWORD` from `.env.local`. `MB_BASE_URL` defaults to
+The credentials come from the environment, by name: `MB_OWNER_EMAIL` (required, no default: the repo is public) and
+`MB_OWNER_PASSWORD`, which falls back to `ADMIN_PASSWORD`; all come from `.env.local`. `MB_BASE_URL` defaults to
 `https://www.musical.bio`: the bare `musical.bio` redirects to `www`, and credentials don't survive a redirect to
 another host, so the CLI refuses redirects. Never pass the password as an argument or print it.
 
@@ -33,6 +33,7 @@ sign-in) can't use the API.
 | `PUT /groups/order` | `{"ids": [...]}`: all your group ids, in the new order |
 | `PATCH /profile` | `name`, `bio`, `heroHeadline`, `heroSubtitle`, `showHero` |
 | `POST /password` | `{"password": "<new>"}`: replaces your password (12–200 characters, not the current one). Responds `{"ok": true}` |
+| `GET /stats/visits?date=YYYY-MM-DD` | Read-only: visitors and pageviews on your own bio page over one America/New_York day (default yesterday; 400 for today or later). See `dashboard.md` |
 
 Links are ordered by `order` across the whole page and grouped by group name. Every query is scoped to the
 authenticated user, so another user's id simply returns 404. Errors return JSON: 400 for invalid input (with
