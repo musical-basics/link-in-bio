@@ -197,3 +197,13 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
   the repo is public), squash-merged as dacd74e (so the first commit with the email stays out of main), production
   Ready, route smoke-tested (counts plausible, ~9-14 a day). Worker wrote 11-14..11-20 files (700/600, 4 keys) and
   installed the LaunchAgent; a kickstarted run exited 0 with no EPERM. Next run 00:20 nightly.
+- 11-21: Brief #1855 (file the public-repo aside as a decision): decision #1438 (make the GitHub repo private; default
+  yes). Checking history found a LIVE Supabase service_role key for production (ref flpbvurtkdnluyoqqtgn) in
+  debug_storage.py / migrate_storage.py, public since 01-03 and still tracked; REST root answered 200 with it. The
+  old .env.production (01-22 to 04-23) is dead: its DB password, AUTH_SECRET and PostHog personal key all differ
+  from prod now (hash compare); its anon key and PostHog public key are public by design. Urgent todo #1437: he copies
+  the publishable key into .env.local (NEW_SUPABASE_PUBLISHABLE_KEY) and disables the legacy JWT keys. Then: set
+  Vercel NEXT_PUBLIC_SUPABASE_ANON_KEY to the publishable key (all envs), redeploy, confirm the leaked key gets 401.
+  Only the two admin upload dialogs use that key (lib/supabase.ts); the bio page uses Prisma. A watcher in this
+  session (scratchpad watch_keys.sh) fires on either event. bio-site: branch fix/remove-leaked-keys removes both
+  scripts and scans for other secrets.
