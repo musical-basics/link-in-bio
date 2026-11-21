@@ -1,12 +1,12 @@
 # Musical Bio — manager handoff
 
-A new manager reads this first. Manager session: `link-in-bio-app-b4` (since the hub came back on 11-19; `link-in-bio-app-fd` earlier that day, `link-in-bio-app-4e` from 11-17, `link-in-bio-app-6d` before that, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
+A new manager reads this first. Manager session: `link-in-bio-app-2b` (since the 11-21 restart; `link-in-bio-app-b4` from the 11-19 hub outage; `link-in-bio-app-fd` earlier that day, `link-in-bio-app-4e` from 11-17, `link-in-bio-app-6d` before that, and `bio-manager` until 11-11). Hub key: `bio` (`cmdr inbox bio`).
 
 ## Workers
 
 | Name | Session id | Worktree | Owns | Current task |
 | --- | --- | --- | --- | --- |
-| bio-site | 8e6dc829 | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | None (not running since 11-09; last work, the A/B close, landed) |
+| bio-site | b916dbe6 (11-21; older 8e6dc829) | .claude/worktrees/bio-site | Bio pages (`app/u`), links data, A/B test (`lib/ab`) | Dashboard: nightly bio visitors (brief #1850), branch feat/dashboard-bio-visits |
 | bio-accounts | 8607e460 (fresh 11-12; older: e651243f) | .claude/worktrees/bio-accounts | Auth and signup (`auth*.ts`, `app/(auth)`), User/Profile/Account schema, owner API | Owner API password change, landed 11-12; idle |
 
 Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypassPermissions --model claude-sonnet-5-5 --effort high "<brief>"` (Opus only when the job needs it; protocol 1.7). Both standing workers are registered on the Organization chart (`cmdr agent`).
@@ -178,3 +178,8 @@ Start a worker from its worktree: `claude --bg -n <name> --permission-mode bypas
 - 11-19: Brief #1586: grouping rule noted. Musical Bio has no open decisions, todos or reviews, so 0 groups.
 - 11-20: Brief #1831: protocol 1.20 (start small) applied: big changes go 50/50 on the kept A/B system; added a
   Test log to docs/ab-testing.md (test 1 recorded). Nothing in flight changes.
+- 11-21: Restart: this session is link-in-bio-app-2b, the commander lionel-command-center-df. Brief #1850 (his Personal
+  Dashboard, contract in Command Center docs/relays/2026-11-21-dashboard.md): write yesterday's (ET day) bio-page
+  visitors nightly to ~/.config/lionel-dashboard/bio/<date>.json (outside git; numbers never in the hub). Plan: owner
+  API GET /api/owner/stats/visits?date= (PostHog key stays in Vercel), scripts/dashboard-bio.mjs, a LaunchAgent at
+  00:20. bio-site started on it (b916dbe6, Sonnet).
